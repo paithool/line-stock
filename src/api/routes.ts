@@ -174,7 +174,13 @@ api.post('/movements', async (c) => {
     note?: string;
   }>();
   const user = c.get('user');
-  const actor = { lineUserId: user.lineUserId, name: user.name, source: 'liff' as const };
+
+const actor = {
+  lineUserId: null,
+  name: user.name,
+  source: 'system' as const,
+};
+  
   const db = c.env.DB;
   const qty = Number(body.qty);
   if (!body.productId || !body.locationId) throw new AppError('ข้อมูลไม่ครบ');
