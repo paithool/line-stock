@@ -13,6 +13,24 @@ type Vars = { Variables: { user: AuthUser }; Bindings: Env };
 
 export const api = new Hono<Vars>();
 
+/* -------------------------------------------------------------- web auth */
+
+api.post('/login', async (c) => {
+  const body = await c.req.json<{
+    username?: string;
+    password?: string;
+  }>();
+
+  return loginWebUser(
+    c,
+    body.username ?? '',
+    body.password ?? '',
+  );
+});
+
+api.post('/logout', (c) => {
+  return logoutWebUser(c);
+});
 /* config เปิดสาธารณะ — หน้าเว็บต้องรู้ LIFF ID ก่อนจึงจะ init ได้ */
 api.get('/config', (c) =>
   c.json({ liffId: c.env.LIFF_ID ?? '', dev: c.env.ENVIRONMENT === 'dev' }),
