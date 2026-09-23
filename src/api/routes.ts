@@ -32,9 +32,13 @@ api.post('/logout', (c) => {
   return logoutWebUser(c);
 });
 /* config เปิดสาธารณะ — หน้าเว็บต้องรู้ LIFF ID ก่อนจึงจะ init ได้ */
-api.get('/config', (c) =>
-  c.json({ liffId: c.env.LIFF_ID ?? '', dev: c.env.ENVIRONMENT === 'dev' }),
+
+  api.get('/config', (c) =>
+  c.json({
+    dev: c.env.ENVIRONMENT === 'dev',
+  }),
 );
+
 
 api.use('/*', requireAuth);
 
