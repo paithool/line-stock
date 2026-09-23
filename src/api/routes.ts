@@ -125,14 +125,14 @@ api.post('/products', async (c) => {
   const initialQty = Number((body as Record<string, unknown>).initial_qty ?? 0);
   const locationId = Number((body as Record<string, unknown>).location_id ?? 0);
   if (initialQty > 0 && locationId) {
-  const user = c.get('user');
+    const user = c.get('user');
 
-  await repo.receive(
-    c.env.DB,
-    product.id,
-    locationId,
-    initialQty,
-    'ยอดยกมาตอนสร้างสินค้า',
+    await repo.receive(
+      c.env.DB,
+      product.id,
+      locationId,
+      initialQty,
+      ยอดยกมาตอนสร้างสินค้า',
     {
       lineUserId: null,
       name: user.name,
