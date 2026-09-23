@@ -595,3 +595,138 @@ export async function isDuplicateEvent(db: D1Database, eventId: string): Promise
 export async function purgeOldEvents(db: D1Database): Promise<void> {
   await db.prepare('DELETE FROM processed_events WHERE created_at < ?').bind(Date.now() - 86_400_000).run();
 }
+/* ----------------------------------------------------------- web auth */
+
+export interface WebUser {
+  id: number;
+  username: string;
+  display_name: string;
+  active: number;
+  created_at: string;
+  last_login_at: string | null;
+}
+
+export async function getWebUserByUsername(
+  db: D1Database,
+  username: string,
+): Promise<WebUser | null> {
+  return db
+    .prepare(
+      `SELECT id, username, display_name, active, created_at, last_login_at
+       FROM web_users
+       WHERE username = ?`,
+    )
+    .bind(username.trim())
+    .first<WebUser>();
+}
+
+export async function getWebUserById(
+  db: D1Database,
+  id: number,
+): Promise<WebUser | null> {
+  return db
+    .prepare(
+      `SELECT id, username, display_name, active, created_at, last_login_at
+       FROM web_users
+       WHERE id = ?`,
+    )
+    .bind(id)
+    .first<WebUser>();
+}
+
+export async function createWebUser(
+  db: D1Database,
+  username: string,
+  passwordHash: string,
+  displayName: string,
+): Promise<WebUser> {
+  const row = await db
+    .prepare(
+      `INSERT INTO web_users
+       (username, password_hash, display_name)
+       VALUES (?, ?, ?)
+       RETURNING id, username, display_name, active, created_at, last_login_at`,
+    )
+    .bind(username.trim(), passwordHash, displayName.trim())
+    .first<WebUser>();
+
+  if (!row) throw new AppError('สร้างบัญชี Admin ไม่สำเร็จ');
+  return row;
+}
+
+export async function getWebUserPasswordHash(
+  db: D1Database,
+  username: string,
+): Promise<{ id: number; password_hash: string; active: number } | null> {
+  return db
+    .prepare(
+      `SELECT id, password_hash, active
+       FROM web_users
+       WHERE username = ?`,
+    )
+    .bind(username.trim())
+    .first<{ id: number; password_hash: string; active: number }>();
+}
+
+export async function updateWebUserLogin(
+  db: D1Database,
+  id: number,
+): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE web_users
+       SET last_login_at = datetime('now')
+       WHERE id = ?`,
+    )
+    .bind(id)
+    .run();
+}
+
+export async function createWebSession(
+  db: D1Database,
+  tokenHash: string,
+  userId: number,
+  expiresAt: number,
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO web_sessions
+       (token_hash, user_id, expires_at)
+       VALUES (?, ?, ?)`,
+    )
+    .bind(tokenHash, userId, expiresAt)
+    .run();
+}
+
+export async function getWebSession(
+  db: D1Database,
+  tokenHash: string,
+): Promise<{ user_id: number; expires_at: number } | null> {
+  return db
+    .prepare(
+      `SELECT user_id, expires_at
+       FROM web_sessions
+       WHERE token_hash = ?`,
+    )
+    .bind(tokenHash)
+    .first<{ user_id: number; expires_at: number }>();
+}
+
+export async function deleteWebSession(
+  db: D1Database,
+  tokenHash: string,
+): Promise<void> {
+  await db
+    .prepare('DELETE FROM web_sessions WHERE token_hash = ?')
+    .bind(tokenHash)
+    .run();
+}
+
+export async function purgeExpiredWebSessions(
+  db: D1Database,
+): Promise<void> {
+  await db
+    .prepare('DELETE FROM web_sessions WHERE expires_at < ?')
+    .bind(Date.now())
+    .run();
+}
