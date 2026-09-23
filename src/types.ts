@@ -13,6 +13,9 @@ export interface Env {
   ENVIRONMENT?: string;
   DEV_LINE_USER_ID?: string;
   DEV_LINE_DISPLAY_NAME?: string;
+  WEB_ADMIN_USERNAME?: string;
+  WEB_ADMIN_PASSWORD?: string;
+  WEB_ADMIN_DISPLAY_NAME?: string;
 }
 
 export type MovementType = 'issue' | 'receive' | 'adjust' | 'transfer_out' | 'transfer_in';
