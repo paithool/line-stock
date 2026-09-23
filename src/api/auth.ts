@@ -349,8 +349,12 @@ export async function loginWebUser(
   }
 
   // สร้าง Admin คนแรก ถ้ายังไม่มีบัญชี
-  await ensureInitialAdmin(c.env);
-
+  
+await ensureInitialAdmin(
+  c.env,
+  cleanUsername,
+  password,
+);
   const account =
     await repo.getWebUserPasswordHash(
       c.env.DB,
