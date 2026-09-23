@@ -31,9 +31,9 @@ api.post('/login', async (c) => {
 api.post('/logout', (c) => {
   return logoutWebUser(c);
 });
-/* config เปิดสาธารณะ — หน้าเว็บต้องรู้ LIFF ID ก่อนจึงจะ init ได้ */
+/* config เปิดสาธารณะ  */
 
-  api.get('/config', (c) =>
+api.get('/config', (c) =>
   c.json({
     dev: c.env.ENVIRONMENT === 'dev',
   }),
@@ -140,9 +140,7 @@ api.post('/products', async (c) => {
     },
   );
 }
-    
-    
-     return c.json(product, 201);
+ return c.json(product, 201);
 });
 
 api.put('/products/:id', async (c) => {
