@@ -2,7 +2,12 @@ import { Hono } from 'hono';
 import type { Env } from '../types';
 import * as repo from '../db/repo';
 import { AppError } from '../lib/util';
-import { requireAuth, type AuthUser } from './auth';
+import {
+  loginWebUser,
+  logoutWebUser,
+  requireAuth,
+  type AuthUser,
+} from './auth';
 
 type Vars = { Variables: { user: AuthUser }; Bindings: Env };
 
