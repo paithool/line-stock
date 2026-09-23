@@ -306,7 +306,11 @@ export type AppContext = Context<{
  */
 async function ensureInitialAdmin(
   env: Env,
+  username: string,
+  password: string,
 ): Promise<void> {
+  
+
   if (
     !env.WEB_ADMIN_USERNAME ||
     !env.WEB_ADMIN_PASSWORD
