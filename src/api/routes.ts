@@ -125,12 +125,24 @@ api.post('/products', async (c) => {
   const initialQty = Number((body as Record<string, unknown>).initial_qty ?? 0);
   const locationId = Number((body as Record<string, unknown>).location_id ?? 0);
   if (initialQty > 0 && locationId) {
-    const user = c.get('user');
-    await repo.receive(c.env.DB, product.id, locationId, initialQty, 'ยอดยกมาตอนสร้างสินค้า', {
-      lineUserId: user.lineUserId, name: user.name, source: 'liff',
-    });
-  }
-  return c.json(product, 201);
+  const user = c.get('user');
+
+  await repo.receive(
+    c.env.DB,
+    product.id,
+    locationId,
+    initialQty,
+    'ยอดยกมาตอนสร้างสินค้า',
+    {
+      lineUserId: null,
+      name: user.name,
+      source: 'system',
+    },
+  );
+}
+    
+    
+     return c.json(product, 201);
 });
 
 api.put('/products/:id', async (c) => {
