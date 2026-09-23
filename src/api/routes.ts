@@ -132,7 +132,7 @@ api.post('/products', async (c) => {
       product.id,
       locationId,
       initialQty,
-      ยอดยกมาตอนสร้างสินค้า',
+      'ยอดยกมาตอนสร้างสินค้า',
     {
       lineUserId: null,
       name: user.name,
