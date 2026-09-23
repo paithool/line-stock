@@ -309,8 +309,6 @@ async function ensureInitialAdmin(
   username: string,
   password: string,
 ): Promise<void> {
-  
-
   if (
     !env.WEB_ADMIN_USERNAME ||
     !env.WEB_ADMIN_PASSWORD
@@ -318,24 +316,48 @@ async function ensureInitialAdmin(
     return;
   }
 
-  const existing = await repo.getWebUserByUsername(
-    env.DB,
-    env.WEB_ADMIN_USERNAME,
-  );
+  const cleanAdminUsername =
+    env.WEB_ADMIN_USERNAME.trim();
+
+  // ต้องตรงกับ Cloudflare Secret ก่อนจึงจะสร้าง Admin ได้
+  if (
+    username.trim() !== cleanAdminUsername ||
+    password !== env.WEB_ADMIN_PASSWORD
+  ) {
+    return;
+  }
+
+  const existing =
+    await repo.getWebUserByUsername(
+      env.DB,
+      cleanAdminUsername,
+    );
 
   if (existing) return;
 
-  const passwordHash = await hashPassword(
-    env.WEB_ADMIN_PASSWORD,
-  );
+  const passwordHash =
+    await hashPassword(password);
 
-  await repo.createWebUser(
-    env.DB,
-    env.WEB_ADMIN_USERNAME,
-    passwordHash,
-    env.WEB_ADMIN_DISPLAY_NAME ??
-      env.WEB_ADMIN_USERNAME,
-  );
+  try {
+    await repo.createWebUser(
+      env.DB,
+      cleanAdminUsername,
+      passwordHash,
+      env.WEB_ADMIN_DISPLAY_NAME?.trim() ||
+        cleanAdminUsername,
+    );
+  } catch (err) {
+    // ป้องกันกรณีมีการ Login พร้อมกัน 2 ครั้ง
+    const created =
+      await repo.getWebUserByUsername(
+        env.DB,
+        cleanAdminUsername,
+      );
+
+    if (!created) {
+      throw err;
+    }
+  }
 }
 
 export async function loginWebUser(
