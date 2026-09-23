@@ -12,10 +12,46 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>" />
 </head>
 <body>
+<div id="loginScreen" class="boot" hidden>
+  <div class="boot__logo">📦</div>
+  <div class="boot__text">
+    <h2 style="margin:0 0 20px;">คลังสินค้า</h2>
 
+    <input
+      id="loginUsername"
+      type="text"
+      placeholder="ชื่อผู้ใช้"
+      autocomplete="username"
+      style="width:100%;max-width:300px;margin-bottom:12px;"
+    />
+
+    <input
+      id="loginPassword"
+      type="password"
+      placeholder="รหัสผ่าน"
+      autocomplete="current-password"
+      style="width:100%;max-width:300px;margin-bottom:16px;"
+    />
+
+    <button
+      id="loginBtn"
+      class="btn"
+      type="button"
+      style="width:100%;max-width:300px;"
+    >
+      เข้าสู่ระบบ
+    </button>
+
+    <div
+      id="loginError"
+      style="color:#ef4444;margin-top:12px;"
+      hidden
+    ></div>
+  </div>
+</div>
 <div id="boot" class="boot">
   <div class="boot__logo">📦</div>
-  <div class="boot__text">กำลังเชื่อมต่อ LINE…</div>
+  <div class="boot__text">กำลังตรวจสอบระบบ…</div>
 </div>
 
 <div id="app" class="app" hidden>
