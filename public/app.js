@@ -245,13 +245,21 @@ function productRow(p, plain = false) {
 }
 
 function movementRow(m) {
-  const meta = MOVE_META[m.type] ?? { label: m.type, icon: '•', cls: '' };
+  const isInitialAdd =
+    m.type === 'receive' &&
+    m.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
+
+  const meta = isInitialAdd
+    ? { label: 'เพิ่มเข้า', icon: '🆕', cls: 'receive' }
+    : (MOVE_META[m.type] ?? { label: m.type, icon: '•', cls: '' });
+
   const positive = Number(m.delta) > 0;
+
   return `<div class="tl">
     <div class="tl__icon badge--${meta.cls}">${meta.icon}</div>
     <div>
       <div class="tl__name">${esc(m.product_name)}</div>
-      <div class="tl__meta">${meta.label} · ${esc(m.location_name)} · ${relTime(m.created_at)}${m.actor_name ? ' · ' + esc(m.actor_name) : ''}${m.note ? ' · ' + esc(m.note) : ''}</div>
+      <div class="tl__meta">${meta.label} · ${esc(m.location_name)} · ${relTime(m.created_at)}${m.actor_name ? ' · ' + esc(m.actor_name) : ''}${m.note && !isInitialAdd ? ' · ' + esc(m.note) : ''}</div>
     </div>
     <div>
       <div class="tl__delta" style="color:var(--${positive ? 'receive' : 'issue'})">${positive ? '+' : ''}${fmt(m.delta)}</div>
