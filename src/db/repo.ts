@@ -439,6 +439,35 @@ export async function transfer(
 ): Promise<MovementResult> {
   if (qty <= 0) throw new AppError('จำนวนต้องมากกว่า 0');
   if (fromId === toId) throw new AppError('คลังต้นทางและปลายทางต้องต่างกัน');
+  // ตรวจสอบสินค้า
+const product = await db
+  .prepare('SELECT id FROM products WHERE id = ? AND active = 1')
+  .bind(productId)
+  .first();
+
+if (!product) {
+  throw new AppError('ไม่พบสินค้าหรือสินค้าถูกปิดใช้งาน');
+}
+
+// ตรวจสอบคลังต้นทาง
+const fromLocation = await db
+  .prepare('SELECT id FROM locations WHERE id = ? AND active = 1')
+  .bind(fromId)
+  .first();
+
+if (!fromLocation) {
+  throw new AppError('ไม่พบคลังต้นทางหรือคลังถูกปิดใช้งาน');
+}
+
+// ตรวจสอบคลังปลายทาง
+const toLocation = await db
+  .prepare('SELECT id FROM locations WHERE id = ? AND active = 1')
+  .bind(toId)
+  .first();
+
+if (!toLocation) {
+  throw new AppError('ไม่พบคลังปลายทางหรือคลังถูกปิดใช้งาน');
+}
   const ref = makeRef('TRF');
   const fromBalance = await addStock(db, productId, fromId, -qty);
   let toBalance: number;
