@@ -233,7 +233,7 @@ export async function updateProduct(db: D1Database, id: number, patch: Partial<P
          updated_at = datetime('now') WHERE id = ?`,
     )
     .bind(
-      (patch.sku ?? current.sku).trim(),
+      sku,
       barcode,
       (patch.name ?? current.name).trim(),
       patch.category !== undefined ? patch.category?.trim() || null : current.category,
