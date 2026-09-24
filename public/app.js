@@ -100,34 +100,36 @@ async function api(path, options = {}) {
 
 async function boot() {
   try {
-    state.config = await fetch('/api/config').then((r) => r.json());
-    const local = ['localhost', '127.0.0.1'].includes(location.hostname);
-    const useLiff = state.config.liffId && !(local && state.config.dev);
-
-    if (useLiff) {
-      await liff.init({ liffId: state.config.liffId });
-      if (!liff.isLoggedIn()) {
-        liff.login({ redirectUri: location.href });
-        return;
-      }
-      state.idToken = liff.getIDToken();
-      if (!state.idToken) throw new Error('ไม่ได้รับ ID token — ตรวจสอบว่าเปิด scope "openid" ใน LINE Login แล้ว');
-    }
-
     state.me = await api('/me');
+
     paintUser();
     await refreshAll();
 
     $('#boot').hidden = true;
+    $('#loginScreen').hidden = true;
     $('#app').hidden = false;
+
     applyDeepLink();
   } catch (err) {
+    if (err.status === 401) {
+      $('#boot').hidden = true;
+      $('#app').hidden = true;
+      $('#loginScreen').hidden = false;
+      $('#loginUsername').focus();
+      return;
+    }
+
     $('#boot').innerHTML = `
       <div class="boot__logo">⚠️</div>
-      <div class="boot__text" style="max-width:280px;text-align:center">${esc(err.message)}</div>
-      <button class="btn btn--ghost" onclick="location.reload()">ลองใหม่</button>`;
+      <div class="boot__text" style="max-width:280px;text-align:center">
+        ${esc(err.message)}
+      </div>
+      <button class="btn btn--ghost" onclick="location.reload()">
+        ลองใหม่
+      </button>`;
   }
 }
+
 
 function applyDeepLink() {
   const p = new URLSearchParams(location.search);
