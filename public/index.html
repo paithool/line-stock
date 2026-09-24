@@ -144,11 +144,27 @@
       
 
       <div class="card">
-        <div class="card__head"><h2>บัญชีผู้ใช้</h2></div>
-        <div class="list">
-          <div class="row"><span class="row__label">ชื่อ</span><span class="row__value" id="meName">-</span></div>
-          <div class="row"><span class="row__label">ชื่อผู้ใช้</span><span class="row__value mono" id="meId">-</span></div>
-        </div>
+  <div class="card__head"><h2>บัญชีผู้ใช้</h2></div>
+
+  <div class="list">
+    <div class="row">
+      <span class="row__label">ชื่อ</span>
+      <span class="row__value" id="meName">-</span>
+    </div>
+
+    <div class="row">
+      <span class="row__label">ชื่อผู้ใช้</span>
+      <span class="row__value mono" id="meId">-</span>
+    </div>
+  </div>
+
+  <button
+    class="btn btn--ghost btn--block"
+    id="logoutBtn"
+    type="button"
+  >
+    ออกจากระบบ
+  </button>
       </div>
       <div class="footnote">คลังสินค้า · ทำงานบน Cloudflare Workers + D1</div>
     </section>
