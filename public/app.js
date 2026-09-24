@@ -520,7 +520,7 @@ function openProductForm(product = null) {
         product
           ? ''
           : `<div class="field--row">
-              <div class="field"><label>ยอดยกมา</label><input name="initial_qty" type="number" min="0" step="any" value="0" /></div>
+              <div class="field"><label>จำนวนที่เพิ่ม</label><input name="initial_qty" type="number" min="0" step="any" value="0" /></div>
               <div class="field"><label>เก็บที่คลัง</label><select name="location_id">${state.locations.map((l) => `<option value="${l.id}">${esc(l.name)}</option>`).join('')}</select></div>
             </div>`
       }
