@@ -71,13 +71,30 @@ function toast(message, kind = '') {
 }
 
 async function api(path, options = {}) {
-  const headers = { 'content-type': 'application/json', ...(options.headers || {}) };
-  if (state.idToken) headers.authorization = `Bearer ${state.idToken}`;
-  const res = await fetch(`/api${path}`, { ...options, headers });
+  const headers = {
+    'content-type': 'application/json',
+    ...(options.headers || {}),
+  };
+
+  const res = await fetch(`/api${path}`, {
+    ...options,
+    headers,
+    credentials: 'same-origin',
+  });
+
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `เกิดข้อผิดพลาด (${res.status})`);
+
+  if (!res.ok) {
+    const error = new Error(
+      data.error || `เกิดข้อผิดพลาด (${res.status})`,
+    );
+    error.status = res.status;
+    throw error;
+  }
+
   return data;
 }
+
 
 /* --------------------------------------------------------- bootstrap */
 
