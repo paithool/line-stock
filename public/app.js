@@ -765,4 +765,26 @@ $('#loginBtn').addEventListener('click', async () => {
     $('#loginBtn').textContent = 'เข้าสู่ระบบ';
   }
 });
+$('#logoutBtn').addEventListener('click', async () => {
+  if (!confirm('ต้องการออกจากระบบหรือไม่?')) return;
+
+  try {
+    await api('/logout', {
+      method: 'POST',
+    });
+
+    state.me = null;
+
+    $('#app').hidden = true;
+    $('#loginScreen').hidden = false;
+
+    $('#loginUsername').value = '';
+    $('#loginPassword').value = '';
+    $('#loginError').hidden = true;
+
+    $('#loginUsername').focus();
+  } catch (err) {
+    alert(err.message || 'ออกจากระบบไม่สำเร็จ');
+  }
+});
 boot();
