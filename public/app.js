@@ -1,5 +1,5 @@
 /* ============================================================
-   LINE Stock — LIFF dashboard
+   Stock — Web App dashboard
    ============================================================ */
 
 const $  = (sel, root = document) => root.querySelector(sel);
