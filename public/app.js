@@ -7,7 +7,6 @@ const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 const state = {
   config: null,
-  idToken: null,
   me: null,
   tab: 'overview',
   products: [],
