@@ -733,5 +733,41 @@ $('#locationFilter').addEventListener('change', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet();
 });
+$('#loginBtn').addEventListener('click', async () => {
+  const username = $('#loginUsername').value.trim();
+  const password = $('#loginPassword').value;
 
+  $('#loginError').hidden = true;
+  $('#loginBtn').disabled = true;
+  $('#loginBtn').textContent = 'กำลังเข้าสู่ระบบ...';
+
+  try {
+    const result = await api('/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    });
+
+    state.me = result.user;
+
+    paintUser();
+    await refreshAll();
+
+    $('#loginScreen').hidden = true;
+    $('#boot').hidden = true;
+    $('#app').hidden = false;
+
+    applyDeepLink();
+  } catch (err) {
+    $('#loginError').textContent =
+      err.message || 'เข้าสู่ระบบไม่สำเร็จ';
+
+    $('#loginError').hidden = false;
+  } finally {
+    $('#loginBtn').disabled = false;
+    $('#loginBtn').textContent = 'เข้าสู่ระบบ';
+  }
+});
 boot();
