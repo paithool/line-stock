@@ -14,7 +14,7 @@ const SESSION_COOKIE = 'web_session';
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 
 // PBKDF2 สำหรับเก็บรหัสผ่าน
-const PASSWORD_ITERATIONS = 120_000;
+const PASSWORD_ITERATIONS = 100_000;
 
 /* ----------------------------------------------------------- LINE legacy */
 
