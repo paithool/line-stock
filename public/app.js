@@ -621,15 +621,7 @@ function openLocationForm(location = null) {
 /* ------------------------------------------------------------- สแกน */
 
 async function scan() {
-  try {
-    if (window.liff?.isInClient?.() && liff.scanCodeV2) {
-      const result = await liff.scanCodeV2();
-      return result?.value ?? null;
-    }
-  } catch (err) {
-    console.warn('scanCodeV2 failed', err);
-  }
-  const manual = prompt('กรอกบาร์โค้ด (อุปกรณ์นี้เปิดกล้องสแกนผ่าน LINE ไม่ได้)');
+  const manual = prompt('กรอกบาร์โค้ด');
   return manual?.trim() || null;
 }
 
