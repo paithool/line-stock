@@ -292,6 +292,14 @@ export async function totalQty(db: D1Database, productId: number): Promise<numbe
 
 /** บวก/ลบสต๊อกแบบกันติดลบ (atomic ที่ระดับ statement) */
 async function addStock(db: D1Database, productId: number, locationId: number, delta: number): Promise<number> {
+  const location = await db
+  .prepare('SELECT id FROM locations WHERE id = ? AND active = 1')
+  .bind(locationId)
+  .first();
+
+if (!location) {
+  throw new AppError('ไม่พบคลังหรือคลังถูกปิดใช้งาน');
+}
   await db
     .prepare('INSERT OR IGNORE INTO stock_levels (product_id, location_id, qty) VALUES (?, ?, 0)')
     .bind(productId, locationId)
