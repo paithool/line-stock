@@ -305,12 +305,38 @@ function renderSettingsLocations(byLocation = []) {
 async function renderHistory() {
   const list = $('#historyList');
   list.innerHTML = '<div class="skeleton"></div>';
+
   const rows = await api('/movements?limit=100');
+
   const filtered =
     state.historyType === 'all'
       ? rows
-      : rows.filter((r) => (state.historyType === 'transfer' ? r.type.startsWith('transfer') : r.type === state.historyType));
-  list.innerHTML = filtered.length ? filtered.map(movementRow).join('') : '<div class="empty">ไม่มีรายการ</div>';
+      : rows.filter((r) => {
+          const isInitialAdd =
+            r.type === 'receive' &&
+            r.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
+
+          // ไม่ให้ "เพิ่มเข้า" ปรากฏในตัวกรอง "รับเข้า"
+          if (state.historyType === 'receive') {
+            return r.type === 'receive' && !isInitialAdd;
+          }
+
+          // ถ้าเลือก "เพิ่มเข้า"
+          if (state.historyType === 'initial') {
+            return isInitialAdd;
+          }
+
+          // ย้ายคลัง
+          if (state.historyType === 'transfer') {
+            return r.type.startsWith('transfer');
+          }
+
+          return r.type === state.historyType;
+        });
+
+  list.innerHTML = filtered.length
+    ? filtered.map(movementRow).join('')
+    : '<div class="empty">ไม่มีรายการ</div>';
 }
 
 /* -------------------------------------------------------- bottom sheet */
