@@ -141,15 +141,16 @@ function applyDeepLink() {
 
 function paintUser() {
   const name = state.me?.name || 'ผู้ใช้';
-  $('#userInitial').textContent = name.trim().charAt(0).toUpperCase();
-  if (state.me?.picture) {
-    const img = $('#userAvatar');
-    img.src = state.me.picture;
-    img.hidden = false;
-    $('#userInitial').hidden = true;
-  }
+
+  $('#userInitial').textContent =
+    name.trim().charAt(0).toUpperCase();
+
+  $('#userAvatar').hidden = true;
+  $('#userInitial').hidden = false;
+
   $('#meName').textContent = name;
-  $('#meId').textContent = state.me?.lineUserId ?? '-';
+  $('#meId').textContent =
+    state.me?.username ?? '-';
 }
 
 async function refreshAll() {
