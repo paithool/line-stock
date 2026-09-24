@@ -210,6 +210,18 @@ async function nextSku(db: D1Database): Promise<string> {
 export async function updateProduct(db: D1Database, id: number, patch: Partial<Product>): Promise<Product | null> {
   const current = await getProduct(db, id);
   if (!current) throw new AppError('ไม่พบสินค้า', 404);
+    const sku = (patch.sku ?? current.sku).trim();
+
+  if (sku !== current.sku) {
+    const dupSku = await db
+      .prepare('SELECT id FROM products WHERE sku = ? AND id != ?')
+      .bind(sku, id)
+      .first();
+
+    if (dupSku) {
+      throw new AppError(`รหัสสินค้า ${sku} ถูกใช้ไปแล้ว`);
+    }
+  }
   const barcode = patch.barcode !== undefined ? patch.barcode?.trim() || null : current.barcode;
   if (barcode && barcode !== current.barcode) {
     const dup = await db.prepare('SELECT id FROM products WHERE barcode = ? AND id != ?').bind(barcode, id).first();
