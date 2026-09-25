@@ -29,6 +29,7 @@ const MOVE_META = {
   adjust:       { label: 'ปรับยอด', icon: '⚖️', cls: 'adjust' },
   transfer_out: { label: 'ย้ายออก', icon: '🔁', cls: 'transfer' },
   transfer_in:  { label: 'ย้ายเข้า', icon: '🔁', cls: 'transfer' },
+  archive:      { label: 'นำสินค้าออกจากระบบ', icon: '🗑️', cls: 'archive' },
 };
 
 /* ------------------------------------------------------------ helpers */
