@@ -494,7 +494,8 @@ export async function adjust(
 }
 
 /** ย้ายระหว่างคลัง */
-export async function transfer(
+
+  export async function transfer(
   db: D1Database,
   productId: number,
   fromId: number,
@@ -504,54 +505,150 @@ export async function transfer(
   actor: Actor,
 ): Promise<MovementResult> {
   if (qty <= 0) throw new AppError('จำนวนต้องมากกว่า 0');
-  if (fromId === toId) throw new AppError('คลังต้นทางและปลายทางต้องต่างกัน');
-  // ตรวจสอบสินค้า
-const product = await db
-  .prepare('SELECT id FROM products WHERE id = ? AND active = 1')
-  .bind(productId)
-  .first();
-
-if (!product) {
-  throw new AppError('ไม่พบสินค้าหรือสินค้าถูกปิดใช้งาน');
-}
-
-// ตรวจสอบคลังต้นทาง
-const fromLocation = await db
-  .prepare('SELECT id FROM locations WHERE id = ? AND active = 1')
-  .bind(fromId)
-  .first();
-
-if (!fromLocation) {
-  throw new AppError('ไม่พบคลังต้นทางหรือคลังถูกปิดใช้งาน');
-}
-
-// ตรวจสอบคลังปลายทาง
-const toLocation = await db
-  .prepare('SELECT id FROM locations WHERE id = ? AND active = 1')
-  .bind(toId)
-  .first();
-
-if (!toLocation) {
-  throw new AppError('ไม่พบคลังปลายทางหรือคลังถูกปิดใช้งาน');
-}
-  const ref = makeRef('TRF');
-  const fromBalance = await addStock(db, productId, fromId, -qty);
-  let toBalance: number;
-  try {
-    toBalance = await addStock(db, productId, toId, qty);
-  } catch (err) {
-    await addStock(db, productId, fromId, qty); // คืนค่าเมื่อขาปลายทางล้มเหลว
-    throw err;
+  if (fromId === toId) {
+    throw new AppError('คลังต้นทางและปลายทางต้องต่างกัน');
   }
-  await logMovement(db, {
-    ref, type: 'transfer_out', productId, locationId: fromId, qty, delta: -qty, balanceAfter: fromBalance, note, actor,
-  });
-  await logMovement(db, {
-    ref, type: 'transfer_in', productId, locationId: toId, qty, delta: qty, balanceAfter: toBalance, note, actor,
-  });
-  return { ref, balanceAfter: fromBalance, balanceAfterTo: toBalance, total: await totalQty(db, productId) };
-}
 
+  // ตรวจสอบสินค้า
+  const product = await db
+    .prepare(
+      'SELECT id FROM products WHERE id = ? AND active = 1',
+    )
+    .bind(productId)
+    .first();
+
+  if (!product) {
+    throw new AppError('ไม่พบสินค้าหรือสินค้าถูกปิดใช้งาน');
+  }
+
+  // ตรวจสอบคลังต้นทาง
+  const fromLocation = await db
+    .prepare(
+      'SELECT id FROM locations WHERE id = ? AND active = 1',
+    )
+    .bind(fromId)
+    .first();
+
+  if (!fromLocation) {
+    throw new AppError('ไม่พบคลังต้นทางหรือคลังถูกปิดใช้งาน');
+  }
+
+  // ตรวจสอบคลังปลายทาง
+  const toLocation = await db
+    .prepare(
+      'SELECT id FROM locations WHERE id = ? AND active = 1',
+    )
+    .bind(toId)
+    .first();
+
+  if (!toLocation) {
+    throw new AppError('ไม่พบคลังปลายทางหรือคลังถูกปิดใช้งาน');
+  }
+
+  // อ่านยอดก่อนย้าย
+  const fromBefore = await getQty(db, productId, fromId);
+  const toBefore = await getQty(db, productId, toId);
+
+  if (fromBefore < qty) {
+    throw new AppError(`สต๊อกไม่พอ (คงเหลือ ${fromBefore})`);
+  }
+
+  const fromBalance = fromBefore - qty;
+  const toBalance = toBefore + qty;
+  const ref = makeRef('TRF');
+
+  // ทำทุกขั้นตอนเป็น batch เดียว
+  const statements: D1PreparedStatement[] = [
+    // สร้าง stock_levels หากยังไม่มี
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO stock_levels
+         (product_id, location_id, qty)
+         VALUES (?, ?, 0)`,
+      )
+      .bind(productId, fromId),
+
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO stock_levels
+         (product_id, location_id, qty)
+         VALUES (?, ?, 0)`,
+      )
+      .bind(productId, toId),
+
+    // หักจากคลังต้นทาง
+    db
+      .prepare(
+        `UPDATE stock_levels
+         SET qty = qty - ?, updated_at = datetime('now')
+         WHERE product_id = ?
+           AND location_id = ?
+           AND qty >= ?`,
+      )
+      .bind(qty, productId, fromId, qty),
+
+    // เพิ่มเข้าคลังปลายทาง
+    db
+      .prepare(
+        `UPDATE stock_levels
+         SET qty = qty + ?, updated_at = datetime('now')
+         WHERE product_id = ?
+           AND location_id = ?`,
+      )
+      .bind(qty, productId, toId),
+
+    // ประวัติย้ายออก
+    db
+      .prepare(
+        `INSERT INTO movements
+         (ref, type, product_id, location_id, qty, delta,
+          balance_after, note, actor_line_id, actor_name, source)
+         VALUES (?, 'transfer_out', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        ref,
+        productId,
+        fromId,
+        qty,
+        -qty,
+        fromBalance,
+        note ?? null,
+        actor.lineUserId,
+        actor.name,
+        actor.source,
+      ),
+
+    // ประวัติย้ายเข้า
+    db
+      .prepare(
+        `INSERT INTO movements
+         (ref, type, product_id, location_id, qty, delta,
+          balance_after, note, actor_line_id, actor_name, source)
+         VALUES (?, 'transfer_in', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        ref,
+        productId,
+        toId,
+        qty,
+        qty,
+        toBalance,
+        note ?? null,
+        actor.lineUserId,
+        actor.name,
+        actor.source,
+      ),
+  ];
+
+  await db.batch(statements);
+
+  return {
+    ref,
+    balanceAfter: fromBalance,
+    balanceAfterTo: toBalance,
+    total: await totalQty(db, productId),
+  };
+}
 /* ------------------------------------------------------------- movements */
 
 export interface MovementRow {
