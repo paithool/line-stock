@@ -247,10 +247,16 @@ export async function updateProduct(db: D1Database, id: number, patch: Partial<P
   return getProduct(db, id);
 }
 
-export async function archiveProduct(db: D1Database, id: number): Promise<void> {
-  // ตรวจสอบสินค้า
+export async function archiveProduct(
+  db: D1Database,
+  id: number,
+): Promise<void> {
   const product = await db
-    .prepare('SELECT id, name FROM products WHERE id = ? AND active = 1')
+    .prepare(
+      `SELECT id, name
+       FROM products
+       WHERE id = ? AND active = 1`,
+    )
     .bind(id)
     .first<{ id: number; name: string }>();
 
@@ -258,7 +264,6 @@ export async function archiveProduct(db: D1Database, id: number): Promise<void> 
     throw new AppError('ไม่พบสินค้าหรือสินค้าถูกปิดใช้งาน', 404);
   }
 
-  // ดึงยอดสินค้าจากทุกคลังที่มีสินค้าเหลือ
   const { results } = await db
     .prepare(
       `SELECT location_id, qty
@@ -270,45 +275,71 @@ export async function archiveProduct(db: D1Database, id: number): Promise<void> 
 
   const ref = makeRef('ARC');
 
-  // เคลียร์สต๊อกแต่ละคลัง และบันทึกประวัติ
-  for (const row of results ?? []) {
-    await db
-      .prepare(
-        `UPDATE stock_levels
-         SET qty = 0, updated_at = datetime('now')
-         WHERE product_id = ? AND location_id = ?`,
-      )
-      .bind(id, row.location_id)
-      .run();
+  const statements: D1PreparedStatement[] = [];
 
-    await logMovement(db, {
-      ref,
-      type: 'archive',
-      productId: id,
-      locationId: row.location_id,
-      qty: row.qty,
-      delta: -row.qty,
-      balanceAfter: 0,
-      note: 'นำสินค้าออกจากระบบ',
-      actor: {
-        lineUserId: 'system',
-        name: 'ระบบ',
-        source: 'system',
-      },
-    });
+  for (const row of results ?? []) {
+    // ปรับยอดสินค้าในคลังเป็น 0
+    statements.push(
+      db
+        .prepare(
+          `UPDATE stock_levels
+           SET qty = 0,
+               updated_at = datetime('now')
+           WHERE product_id = ?
+             AND location_id = ?`,
+        )
+        .bind(id, row.location_id),
+    );
+
+    // บันทึกประวัติการนำสินค้าออกจากระบบ
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO movements
+           (
+             ref,
+             type,
+             product_id,
+             location_id,
+             qty,
+             delta,
+             balance_after,
+             note,
+             actor_line_id,
+             actor_name,
+             source
+           )
+           VALUES (?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+        )
+        .bind(
+          ref,
+          id,
+          row.location_id,
+          Math.abs(row.qty),
+          -row.qty,
+          'นำสินค้าออกจากระบบ',
+          null,
+          'ระบบ',
+          'system',
+        ),
+    );
   }
 
-  // ปิดการใช้งานสินค้า
-  await db
-    .prepare(
-      `UPDATE products
-       SET active = 0, updated_at = datetime('now')
-       WHERE id = ?`,
-    )
-    .bind(id)
-    .run();
-}
+  // ปิดสินค้า
+  statements.push(
+    db
+      .prepare(
+        `UPDATE products
+         SET active = 0,
+             updated_at = datetime('now')
+         WHERE id = ?`,
+      )
+      .bind(id),
+  );
 
+  // ทำทั้งหมดเป็นชุดเดียว
+  await db.batch(statements);
+}
 /* ----------------------------------------------------------------- stock */
 
 export interface LevelRow {
