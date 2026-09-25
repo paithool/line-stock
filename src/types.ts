@@ -18,7 +18,13 @@ export interface Env {
   WEB_ADMIN_DISPLAY_NAME?: string;
 }
 
-export type MovementType = 'issue' | 'receive' | 'adjust' | 'transfer_out' | 'transfer_in';
+export type MovementType =
+  | 'issue'
+  | 'receive'
+  | 'adjust'
+  | 'transfer_out'
+  | 'transfer_in'
+  | 'archive';
 export type ActionType = 'issue' | 'receive' | 'adjust' | 'transfer';
 
 export interface Product {
