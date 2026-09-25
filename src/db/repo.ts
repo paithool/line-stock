@@ -248,7 +248,65 @@ export async function updateProduct(db: D1Database, id: number, patch: Partial<P
 }
 
 export async function archiveProduct(db: D1Database, id: number): Promise<void> {
-  await db.prepare("UPDATE products SET active = 0, updated_at = datetime('now') WHERE id = ?").bind(id).run();
+  // ตรวจสอบสินค้า
+  const product = await db
+    .prepare('SELECT id, name FROM products WHERE id = ? AND active = 1')
+    .bind(id)
+    .first<{ id: number; name: string }>();
+
+  if (!product) {
+    throw new AppError('ไม่พบสินค้าหรือสินค้าถูกปิดใช้งาน', 404);
+  }
+
+  // ดึงยอดสินค้าจากทุกคลังที่มีสินค้าเหลือ
+  const { results } = await db
+    .prepare(
+      `SELECT location_id, qty
+       FROM stock_levels
+       WHERE product_id = ? AND qty > 0`,
+    )
+    .bind(id)
+    .all<{ location_id: number; qty: number }>();
+
+  const ref = makeRef('ARC');
+
+  // เคลียร์สต๊อกแต่ละคลัง และบันทึกประวัติ
+  for (const row of results ?? []) {
+    await db
+      .prepare(
+        `UPDATE stock_levels
+         SET qty = 0, updated_at = datetime('now')
+         WHERE product_id = ? AND location_id = ?`,
+      )
+      .bind(id, row.location_id)
+      .run();
+
+    await logMovement(db, {
+      ref,
+      type: 'archive',
+      productId: id,
+      locationId: row.location_id,
+      qty: row.qty,
+      delta: -row.qty,
+      balanceAfter: 0,
+      note: 'นำสินค้าออกจากระบบ',
+      actor: {
+        lineUserId: 'system',
+        name: 'ระบบ',
+        source: 'system',
+      },
+    });
+  }
+
+  // ปิดการใช้งานสินค้า
+  await db
+    .prepare(
+      `UPDATE products
+       SET active = 0, updated_at = datetime('now')
+       WHERE id = ?`,
+    )
+    .bind(id)
+    .run();
 }
 
 /* ----------------------------------------------------------------- stock */
