@@ -250,6 +250,7 @@ export async function updateProduct(db: D1Database, id: number, patch: Partial<P
 export async function archiveProduct(
   db: D1Database,
   id: number,
+  actor: Actor,
 ): Promise<void> {
   const product = await db
     .prepare(
