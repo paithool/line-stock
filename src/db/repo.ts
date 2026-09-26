@@ -268,7 +268,7 @@ export async function archiveProduct(
     .prepare(
       `SELECT location_id, qty
        FROM stock_levels
-       WHERE product_id = ? AND qty > 0`,
+       WHERE product_id = ?`,
     )
     .bind(id)
     .all<{ location_id: number; qty: number }>();
