@@ -319,9 +319,9 @@ export async function archiveProduct(
           Math.abs(row.qty),
           -row.qty,
           'นำสินค้าออกจากระบบ',
-          null,
-          'ระบบ',
-          'system',
+          actor.lineUserId,
+          actor.name,
+          actor.source,
         ),
     );
   }
