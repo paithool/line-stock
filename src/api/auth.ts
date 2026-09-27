@@ -16,66 +16,7 @@ const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 // PBKDF2 สำหรับเก็บรหัสผ่าน
 const PASSWORD_ITERATIONS = 100_000;
 
-/* ----------------------------------------------------------- LINE legacy */
 
-/**
- * ผู้ใช้จาก LINE Login เดิม
- * เก็บไว้เพื่อไม่ให้ระบบ LINE เดิมเสีย
- */
-export interface LineAuthUser {
-  lineUserId: string;
-  name: string | null;
-  picture: string | null;
-}
-
-interface VerifyResponse {
-  sub: string;
-  name?: string;
-  picture?: string;
-  aud?: string;
-  exp?: number;
-}
-
-/** ตรวจ ID token ที่ได้จาก LIFF กับเซิร์ฟเวอร์ของ LINE */
-export async function verifyIdToken(
-  env: Env,
-  idToken: string,
-): Promise<LineAuthUser | null> {
-  if (!env.LINE_LOGIN_CHANNEL_ID) {
-    console.error('LINE_LOGIN_CHANNEL_ID ยังไม่ได้ตั้งค่า');
-    return null;
-  }
-
-  const res = await fetch('https://api.line.me/oauth2/v2.1/verify', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      id_token: idToken,
-      client_id: env.LINE_LOGIN_CHANNEL_ID,
-    }),
-  });
-
-  if (!res.ok) {
-    console.warn(
-      'verify id_token failed',
-      res.status,
-      await res.text(),
-    );
-    return null;
-  }
-
-  const data = (await res.json()) as VerifyResponse;
-
-  if (!data.sub) return null;
-
-  return {
-    lineUserId: data.sub,
-    name: data.name ?? null,
-    picture: data.picture ?? null,
-  };
-}
 
 /* ----------------------------------------------------------- crypto utils */
 
