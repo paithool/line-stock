@@ -3,24 +3,7 @@ import { AppError, makeRef, norm } from '../lib/util';
 
 /* ------------------------------------------------------------------ users */
 
-export async function ensureUser(
-  db: D1Database,
-  lineUserId: string,
-  displayName?: string | null,
-  pictureUrl?: string | null,
-): Promise<void> {
-  await db
-    .prepare(
-      `INSERT INTO users (line_user_id, display_name, picture_url)
-       VALUES (?, ?, ?)
-       ON CONFLICT(line_user_id) DO UPDATE SET
-         display_name = COALESCE(excluded.display_name, users.display_name),
-         picture_url  = COALESCE(excluded.picture_url, users.picture_url),
-         last_seen_at = datetime('now')`,
-    )
-    .bind(lineUserId, displayName ?? null, pictureUrl ?? null)
-    .run();
-}
+
 
 /* -------------------------------------------------------------- locations */
 
