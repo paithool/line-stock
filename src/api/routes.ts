@@ -85,8 +85,21 @@ api.put('/locations/:id', async (c) => {
   return c.json(await repo.updateLocation(c.env.DB, Number(c.req.param('id')), patch as never));
 });
 
-api.delete('/locations/:id', async (c) => {
-  await repo.deleteLocation(c.env.DB, Number(c.req.param('id')));
+api.delete('/products/:id', async (c) => {
+  const user = c.get('user');
+
+  const actor = {
+    lineUserId: null,
+    name: user.name,
+    source: 'system' as const,
+  };
+
+  await repo.archiveProduct(
+    c.env.DB,
+    Number(c.req.param('id')),
+    actor,
+  );
+
   return c.json({ ok: true });
 });
 
