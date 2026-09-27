@@ -419,7 +419,6 @@ async function logMovement(
       args.delta,
       args.balanceAfter,
       args.note ?? null,
-      args.actor.lineUserId,
       args.actor.name,
       args.actor.source,
     )
