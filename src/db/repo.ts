@@ -611,47 +611,44 @@ export async function adjust(
       .bind(qty, productId, toId),
 
     // ประวัติย้ายออก
-    db
-      .prepare(
-        `INSERT INTO movements
-         (ref, type, product_id, location_id, qty, delta,
-          balance_after, note, actor_line_id, actor_name, source)
-         VALUES (?, 'transfer_out', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .bind(
-        ref,
-        productId,
-        fromId,
-        qty,
-        -qty,
-        fromBalance,
-        note ?? null,
-        actor.lineUserId,
-        actor.name,
-        actor.source,
-      ),
-
+db
+  .prepare(
+    `INSERT INTO movements
+     (ref, type, product_id, location_id, qty, delta,
+      balance_after, note, actor_name, source)
+     VALUES (?, 'transfer_out', ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+  .bind(
+    ref,
+    productId,
+    fromId,
+    qty,
+    -qty,
+    fromBalance,
+    note ?? null,
+    actor.name,
+    actor.source,
+  ),
     // ประวัติย้ายเข้า
-    db
-      .prepare(
-        `INSERT INTO movements
-         (ref, type, product_id, location_id, qty, delta,
-          balance_after, note, actor_line_id, actor_name, source)
-         VALUES (?, 'transfer_in', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .bind(
-        ref,
-        productId,
-        toId,
-        qty,
-        qty,
-        toBalance,
-        note ?? null,
-        actor.lineUserId,
-        actor.name,
-        actor.source,
-      ),
-  ];
+db
+  .prepare(
+    `INSERT INTO movements
+     (ref, type, product_id, location_id, qty, delta,
+      balance_after, note, actor_name, source)
+     VALUES (?, 'transfer_in', ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+  .bind(
+    ref,
+    productId,
+    toId,
+    qty,
+    qty,
+    toBalance,
+    note ?? null,
+    actor.name,
+    actor.source,
+  ),
+];
 
   await db.batch(statements);
 
