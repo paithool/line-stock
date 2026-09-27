@@ -292,7 +292,7 @@ export async function archiveProduct(
              actor_name,
              source
            )
-           VALUES (?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(
           ref,
