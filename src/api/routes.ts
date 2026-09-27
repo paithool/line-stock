@@ -162,7 +162,20 @@ api.put('/products/:id', async (c) => {
 });
 
 api.delete('/products/:id', async (c) => {
-  await repo.archiveProduct(c.env.DB, Number(c.req.param('id')));
+  const user = c.get('user');
+
+  const actor = {
+    lineUserId: null,
+    name: user.name,
+    source: 'system' as const,
+  };
+
+  await repo.archiveProduct(
+    c.env.DB,
+    Number(c.req.param('id')),
+    actor,
+  );
+
   return c.json({ ok: true });
 });
 
