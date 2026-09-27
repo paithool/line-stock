@@ -49,7 +49,16 @@ CREATE INDEX idx_stock_location ON stock_levels(location_id);
 CREATE TABLE movements (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
   ref            TEXT NOT NULL,
-  type           TEXT NOT NULL CHECK (type IN ('issue','receive','adjust','transfer_out','transfer_in')),
+  type TEXT NOT NULL CHECK (
+  type IN (
+    'issue',
+    'receive',
+    'adjust',
+    'transfer_out',
+    'transfer_in',
+    'archive'
+  )
+),
   product_id     INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   location_id    INTEGER NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
   qty            REAL NOT NULL,
