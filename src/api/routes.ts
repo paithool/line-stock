@@ -146,7 +146,7 @@ api.delete('/products/:id', async (c) => {
 
   const actor = {
     lineUserId: null,
-    name: user.name,
+    name: user.username,
     source: 'system' as const,
   };
 
