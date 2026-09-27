@@ -128,7 +128,7 @@ api.post('/products', async (c) => {
     'จำนวนเริ่มต้นตอนเพิ่มสินค้า',
     {
       lineUserId: null,
-      name: user.name,
+      name: user.username,
       source: 'system',
     },
   );
@@ -181,7 +181,7 @@ api.post('/movements', async (c) => {
 
 const actor = {
   lineUserId: null,
-  name: user.name,
+  name: user.username,
   source: 'system' as const,
 };
   
