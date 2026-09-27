@@ -758,63 +758,6 @@ export async function getSummary(db: D1Database): Promise<Summary> {
   );
 }
 
-/* ---------------------------------------------------------------- drafts */
-
-const DRAFT_TTL_MS = 10 * 60 * 1000;
-
-export async function saveDraft(db: D1Database, draft: Draft): Promise<void> {
-  await db
-    .prepare(
-      `INSERT INTO drafts (line_user_id, token, step, payload, expires_at)
-       VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(line_user_id) DO UPDATE SET
-         token = excluded.token, step = excluded.step,
-         payload = excluded.payload, expires_at = excluded.expires_at`,
-    )
-    .bind(draft.lineUserId, draft.token, draft.step, JSON.stringify(draft.payload), Date.now() + DRAFT_TTL_MS)
-    .run();
-}
-
-export async function getDraft(db: D1Database, lineUserId: string, token?: string): Promise<Draft | null> {
-  const row = await db
-    .prepare('SELECT * FROM drafts WHERE line_user_id = ?')
-    .bind(lineUserId)
-    .first<{ line_user_id: string; token: string; step: string; payload: string; expires_at: number }>();
-  if (!row) return null;
-  if (row.expires_at < Date.now()) {
-    await clearDraft(db, lineUserId);
-    return null;
-  }
-  if (token && row.token !== token) return null;
-  return {
-    lineUserId: row.line_user_id,
-    token: row.token,
-    step: row.step as DraftStep,
-    payload: JSON.parse(row.payload) as DraftPayload,
-  };
-}
-
-export async function clearDraft(db: D1Database, lineUserId: string): Promise<void> {
-  await db.prepare('DELETE FROM drafts WHERE line_user_id = ?').bind(lineUserId).run();
-}
-
-/** กัน webhook ซ้ำ — คืน true ถ้าเคยประมวลผลแล้ว */
-export async function isDuplicateEvent(db: D1Database, eventId: string): Promise<boolean> {
-  try {
-    await db
-      .prepare('INSERT INTO processed_events (event_id, created_at) VALUES (?, ?)')
-      .bind(eventId, Date.now())
-      .run();
-    return false;
-  } catch {
-    return true;
-  }
-}
-
-export async function purgeOldEvents(db: D1Database): Promise<void> {
-  await db.prepare('DELETE FROM processed_events WHERE created_at < ?').bind(Date.now() - 86_400_000).run();
-}
-/* ----------------------------------------------------------- web auth */
 
 export interface WebUser {
   id: number;
