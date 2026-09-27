@@ -278,34 +278,34 @@ export async function archiveProduct(
     // บันทึกประวัติการนำสินค้าออกจากระบบ
     statements.push(
       db
-        .prepare(
-          `INSERT INTO movements
-           (
-             ref,
-             type,
-             product_id,
-             location_id,
-             qty,
-             delta,
-             balance_after,
-             note,
-             actor_name,
-             source
-           )
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .bind(
-          ref,
-          id,
-          row.location_id,
-          Math.abs(row.qty),
-          -row.qty,
-          'นำสินค้าออกจากระบบ',
-          actor.name,
-          actor.source,
-        ),
-    );
-  }
+  .prepare(
+    `INSERT INTO movements
+     (
+       ref,
+       type,
+       product_id,
+       location_id,
+       qty,
+       delta,
+       balance_after,
+       note,
+       actor_name,
+       source
+     )
+     VALUES (?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?)`,
+  )
+  .bind(
+    ref,
+    id,
+    row.location_id,
+    Math.abs(row.qty),
+    -row.qty,
+    'นำสินค้าออกจากระบบ',
+    actor.name,
+    actor.source,
+  ),
+ );
+}
 
   // ปิดสินค้า
   statements.push(
