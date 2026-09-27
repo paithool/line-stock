@@ -31,13 +31,9 @@ api.post('/login', async (c) => {
 api.post('/logout', (c) => {
   return logoutWebUser(c);
 });
-/* config เปิดสาธารณะ  */
 
-api.get('/config', (c) =>
-  c.json({
-    dev: c.env.ENVIRONMENT === 'dev',
-  }),
-);
+
+
 
 
 api.use('/*', requireAuth);
