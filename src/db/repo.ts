@@ -406,8 +406,9 @@ async function logMovement(
 ): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO movements (ref, type, product_id, location_id, qty, delta, balance_after, note, actor_line_id, actor_name, source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO movements
+ (ref, type, product_id, location_id, qty, delta, balance_after, note, actor_name, source)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       args.ref,
