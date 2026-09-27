@@ -1,9 +1,6 @@
 import { Hono } from 'hono';
 import type { Env } from './types';
 import { api } from './api/routes';
-import { verifySignature } from './line/client';
-import { handleEvent, simulate } from './line/handler';
-import * as repo from './db/repo';
 import { AppError } from './lib/util';
 
 const app = new Hono<{ Bindings: Env }>();
