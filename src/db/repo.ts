@@ -289,11 +289,10 @@ export async function archiveProduct(
              delta,
              balance_after,
              note,
-             actor_line_id,
              actor_name,
              source
            )
-           VALUES (?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+           VALUES (?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?)`,
         )
         .bind(
           ref,
@@ -302,7 +301,6 @@ export async function archiveProduct(
           Math.abs(row.qty),
           -row.qty,
           'นำสินค้าออกจากระบบ',
-          actor.lineUserId,
           actor.name,
           actor.source,
         ),
