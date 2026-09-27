@@ -7,46 +7,6 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.get('/healthz', (c) => c.json({ ok: true, service: 'line-stock' }));
 
-/* ------------------------------------------------------- LINE webhook */
-
-app.post('/line/webhook', async (c) => {
-  const raw = await c.req.text();
-  const signature = c.req.header('x-line-signature') ?? null;
-
-  const valid = await verifySignature(c.env.LINE_CHANNEL_SECRET, raw, signature);
-  if (!valid) {
-    console.warn('ลายเซ็น webhook ไม่ถูกต้อง');
-    return c.text('invalid signature', 401);
-  }
-
-  const body = JSON.parse(raw || '{}') as { events?: any[] };
-  const events = body.events ?? [];
-
-  // ตอบ 200 ทันทีตามที่ LINE ต้องการ แล้วประมวลผลต่อเบื้องหลัง
-  c.executionCtx.waitUntil(
-    (async () => {
-      for (const event of events) {
-        try {
-          if (event.webhookEventId && (await repo.isDuplicateEvent(c.env.DB, event.webhookEventId))) continue;
-          await handleEvent(c.env, event);
-        } catch (err) {
-          console.error('handleEvent error', err);
-        }
-      }
-      if (Math.random() < 0.05) await repo.purgeOldEvents(c.env.DB).catch(() => {});
-    })(),
-  );
-
-  return c.text('OK');
-});
-
-/* จำลองบทสนทนาไว้ทดสอบตอนพัฒนา — ปิดสนิทบน production */
-app.post('/line/simulate', async (c) => {
-  if (c.env.ENVIRONMENT !== 'dev') return c.json({ error: 'ไม่พบเส้นทางนี้' }, 404);
-  const body = await c.req.json<{ user?: string; text?: string; postback?: string }>();
-  const messages = await simulate(c.env, body.user ?? 'Utest0000000000000000000000000001', body);
-  return c.json({ messages });
-});
 
 /* ------------------------------------------------------------ REST API */
 
