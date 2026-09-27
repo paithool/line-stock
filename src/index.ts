@@ -18,7 +18,7 @@ app.onError((err, c) => {
   return c.json({ error: 'เกิดข้อผิดพลาดภายในระบบ' }, 500);
 });
 
-/* หน้า LIFF (ไฟล์ static ถูกเสิร์ฟโดย assets binding อยู่แล้ว) */
+/* หน้า Web Admin */
 app.notFound(async (c) => {
   if (c.req.path.startsWith('/api') || c.req.path.startsWith('/line')) {
     return c.json({ error: 'ไม่พบเส้นทางนี้' }, 404);
