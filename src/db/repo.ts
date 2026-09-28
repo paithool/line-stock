@@ -34,7 +34,7 @@ export async function findLocationByKeyword(db: D1Database, keyword: string): Pr
     null
   );
 }
-export async function createLocation(
+ export async function createLocation(
   db: D1Database,
   code: string,
   name: string,
@@ -52,12 +52,14 @@ export async function createLocation(
     throw new AppError('กรุณาระบุชื่อคลัง');
   }
 
-  // ตรวจสอบรหัสคลังซ้ำ
+  // ตรวจสอบรหัสคลังซ้ำเฉพาะคลังที่ยังใช้งานอยู่
   const dupCode = await db
     .prepare(
       `SELECT id
        FROM locations
-       WHERE UPPER(code) = UPPER(?)`,
+       WHERE UPPER(TRIM(code)) = UPPER(TRIM(?))
+         AND active = 1
+       LIMIT 1`,
     )
     .bind(newCode)
     .first();
@@ -66,12 +68,14 @@ export async function createLocation(
     throw new AppError(`รหัสคลัง ${newCode} ถูกใช้งานแล้ว`);
   }
 
-  // ตรวจสอบชื่อคลังซ้ำ
+  // ตรวจสอบชื่อคลังซ้ำเฉพาะคลังที่ยังใช้งานอยู่
   const dupName = await db
     .prepare(
       `SELECT id
        FROM locations
-       WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))`,
+       WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+         AND active = 1
+       LIMIT 1`,
     )
     .bind(newName)
     .first();
@@ -98,7 +102,6 @@ export async function createLocation(
     throw new AppError('ไม่สามารถเพิ่มคลังสินค้าได้');
   }
 
-  // ถ้าตั้งเป็นคลังหลัก ให้ยกเลิกคลังหลักเดิม
   if (isDefault) {
     await db
       .prepare(
@@ -109,7 +112,9 @@ export async function createLocation(
   }
 
   return row;
-}
+ }
+  
+    
 
 export async function updateLocation(
   db: D1Database,
