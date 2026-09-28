@@ -5,7 +5,7 @@ import { AppError } from './lib/util';
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get('/healthz', (c) => c.json({ ok: true, service: 'line-stock' }));
+app.get('/healthz', (c) => c.json({ ok: true, service: 'stock-system' }));
 
 
 /* ------------------------------------------------------------ REST API */
@@ -20,7 +20,7 @@ app.onError((err, c) => {
 
 /* หน้า Web Admin */
 app.notFound(async (c) => {
-  if (c.req.path.startsWith('/api') || c.req.path.startsWith('/line')) {
+  if (c.req.path.startsWith('/api') || c.req.path.startsWith('/api')) {
     return c.json({ error: 'ไม่พบเส้นทางนี้' }, 404);
   }
   const url = new URL(c.req.url);
