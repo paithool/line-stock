@@ -344,3 +344,98 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 
 .skeleton { background: linear-gradient(90deg, var(--surface-2) 25%, var(--line-soft) 50%, var(--surface-2) 75%); background-size: 200% 100%; animation: shimmer 1.3s infinite; border-radius: var(--r-md); height: 64px; }
 @keyframes shimmer { from { background-position: 200% 0 } to { background-position: -200% 0 } }
+
+/* ============================================================
+   Barcode Scanner
+============================================================ */
+
+#barcodeScanner {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.barcode-scanner {
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  color: #fff;
+}
+
+.barcode-scanner__head {
+  height: 64px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.barcode-scanner__head strong {
+  font-size: 20px;
+}
+
+.barcode-scanner__head button {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.barcode-scanner__camera {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #111;
+}
+
+#barcodeVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.barcode-scanner__frame {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 35%;
+  height: 130px;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+.barcode-scanner__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: #00ff88;
+  box-shadow: 0 0 10px #00ff88;
+}
+
+.barcode-scanner__status {
+  min-height: 52px;
+  padding: 14px;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 15px;
+  background: #111;
+}
+
+.barcode-scanner > .btn {
+  margin: 12px;
+  width: calc(100% - 24px);
+}
+
