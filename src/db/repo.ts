@@ -34,17 +34,83 @@ export async function findLocationByKeyword(db: D1Database, keyword: string): Pr
     null
   );
 }
+export async function createLocation(
+  db: D1Database,
+  code: string,
+  name: string,
+  isDefault = false,
+): Promise<Location> {
 
-export async function createLocation(db: D1Database, code: string, name: string, isDefault = false): Promise<Location> {
-  const row = await db
-    .prepare('INSERT INTO locations (code, name, is_default) VALUES (?, ?, ?) RETURNING *')
-    .bind(code.trim().toUpperCase(), name.trim(), isDefault ? 1 : 0)
-    .first<Location>();
-  if (isDefault) {
-    await db.prepare('UPDATE locations SET is_default = 0 WHERE id != ?').bind(row!.id).run();
+  const newCode = code.trim().toUpperCase();
+  const newName = name.trim();
+
+  if (!newCode) {
+    throw new AppError('กรุณาระบุรหัสคลัง');
   }
-  return row!;
+
+  if (!newName) {
+    throw new AppError('กรุณาระบุชื่อคลัง');
+  }
+
+  // ตรวจสอบรหัสคลังซ้ำ
+  const dupCode = await db
+    .prepare(
+      `SELECT id
+       FROM locations
+       WHERE UPPER(code) = UPPER(?)`,
+    )
+    .bind(newCode)
+    .first();
+
+  if (dupCode) {
+    throw new AppError(`รหัสคลัง ${newCode} ถูกใช้งานแล้ว`);
+  }
+
+  // ตรวจสอบชื่อคลังซ้ำ
+  const dupName = await db
+    .prepare(
+      `SELECT id
+       FROM locations
+       WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))`,
+    )
+    .bind(newName)
+    .first();
+
+  if (dupName) {
+    throw new AppError(`ชื่อคลัง "${newName}" ถูกใช้งานแล้ว`);
+  }
+
+  const row = await db
+    .prepare(
+      `INSERT INTO locations
+       (code, name, is_default)
+       VALUES (?, ?, ?)
+       RETURNING *`,
+    )
+    .bind(
+      newCode,
+      newName,
+      isDefault ? 1 : 0,
+    )
+    .first<Location>();
+
+  if (!row) {
+    throw new AppError('ไม่สามารถเพิ่มคลังสินค้าได้');
+  }
+
+  // ถ้าตั้งเป็นคลังหลัก ให้ยกเลิกคลังหลักเดิม
+  if (isDefault) {
+    await db
+      .prepare(
+        'UPDATE locations SET is_default = 0 WHERE id != ?',
+      )
+      .bind(row.id)
+      .run();
+  }
+
+  return row;
 }
+
 export async function updateLocation(
   db: D1Database,
   id: number,
