@@ -65,11 +65,27 @@ export async function updateLocation(db: D1Database, id: number, patch: Partial<
 
 export async function deleteLocation(db: D1Database, id: number): Promise<void> {
   const used = await db
-    .prepare('SELECT COUNT(*) AS c FROM stock_levels WHERE location_id = ? AND qty != 0')
+    .prepare(`
+      SELECT COUNT(*) AS c
+      FROM stock_levels s
+      INNER JOIN products p ON p.id = s.product_id
+      WHERE s.location_id = ?
+        AND p.active = 1
+        AND ABS(s.qty) > 0.000001
+    `)
     .bind(id)
     .first<{ c: number }>();
-  if ((used?.c ?? 0) > 0) throw new AppError('คลังนี้ยังมีสินค้าคงเหลืออยู่ ย้ายสินค้าออกก่อนจึงจะลบได้');
-  await db.prepare('UPDATE locations SET active = 0 WHERE id = ?').bind(id).run();
+
+  if ((used?.c ?? 0) > 0) {
+    throw new AppError(
+      'คลังนี้ยังมีสินค้าคงเหลืออยู่ ย้ายสินค้าออกก่อนจึงจะลบได้'
+    );
+  }
+
+  await db
+    .prepare('UPDATE locations SET active = 0 WHERE id = ?')
+    .bind(id)
+    .run();
 }
 
 /* --------------------------------------------------------------- products */
