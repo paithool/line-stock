@@ -157,8 +157,12 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .loc-bar__name { font-weight: 500; }
 .loc-bar__value { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .loc-bar__track { height: 7px; background: var(--surface-2); border-radius: 99px; margin-top: 6px; overflow: hidden; }
-.loc-bar__fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #0E9F6E, #3B82F6); transition: width .5s cubic-bezier(.2,.8,.2,1); }
-
+.loc-bar__fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--receive), var(--transfer));
+  transition: width .5s cubic-bezier(.2,.8,.2,1);
+}
 /* ------------------------------------------------------- lists */
 .list { display: grid; gap: 2px; }
 .list--cards { gap: 10px; }
