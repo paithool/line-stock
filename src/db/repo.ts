@@ -114,9 +114,7 @@ export async function findLocationByKeyword(db: D1Database, keyword: string): Pr
   return row;
  }
   
-    
-
-export async function updateLocation(
+  export async function updateLocation(
   db: D1Database,
   id: number,
   patch: Partial<Location>,
@@ -142,7 +140,6 @@ export async function updateLocation(
   const nextActive =
     patch.active ?? current.active;
 
-
   if (!nextCode) {
     throw new AppError('กรุณาระบุรหัสคลัง');
   }
@@ -151,17 +148,16 @@ export async function updateLocation(
     throw new AppError('กรุณาระบุชื่อคลัง');
   }
 
-
-  // ============================================================
   // ตรวจสอบรหัสคลังซ้ำ
-  // ============================================================
-
+  // ตรวจเฉพาะคลังที่ยัง active = 1
   const dupCode = await db
     .prepare(
       `SELECT id
        FROM locations
-       WHERE UPPER(code) = UPPER(?)
-         AND id != ?`,
+       WHERE UPPER(TRIM(code)) = UPPER(TRIM(?))
+         AND id != ?
+         AND active = 1
+       LIMIT 1`,
     )
     .bind(nextCode, id)
     .first();
@@ -170,17 +166,16 @@ export async function updateLocation(
     throw new AppError(`รหัสคลัง ${nextCode} ถูกใช้งานแล้ว`);
   }
 
-
-  // ============================================================
   // ตรวจสอบชื่อคลังซ้ำ
-  // ============================================================
-
+  // ตรวจเฉพาะคลังที่ยัง active = 1
   const dupName = await db
     .prepare(
       `SELECT id
        FROM locations
        WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
-         AND id != ?`,
+         AND id != ?
+         AND active = 1
+       LIMIT 1`,
     )
     .bind(nextName, id)
     .first();
@@ -188,11 +183,6 @@ export async function updateLocation(
   if (dupName) {
     throw new AppError(`ชื่อคลัง "${nextName}" ถูกใช้งานแล้ว`);
   }
-
-
-  // ============================================================
-  // บันทึกข้อมูล
-  // ============================================================
 
   await db
     .prepare(
@@ -212,7 +202,6 @@ export async function updateLocation(
     )
     .run();
 
-
   // ถ้าตั้งเป็นคลังหลัก
   // ให้ยกเลิกคลังหลักอื่น
   if (nextDefault) {
@@ -226,7 +215,6 @@ export async function updateLocation(
 
   return getLocation(db, id);
 }
-      
   
   
   
