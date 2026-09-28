@@ -47,5 +47,5 @@ export interface Location {
 
 export interface Actor {
   name: string | null;
-  source: 'system';
+  source: 'line' | 'liff' | 'system';
 }
