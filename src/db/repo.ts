@@ -45,23 +45,229 @@ export async function createLocation(db: D1Database, code: string, name: string,
   }
   return row!;
 }
+export async function updateLocation(
+  db: D1Database,
+  id: number,
+  patch: Partial<Location>,
+): Promise<Location | null> {
 
-export async function updateLocation(db: D1Database, id: number, patch: Partial<Location>): Promise<Location | null> {
+  // 1. ตรวจว่าคลังมีอยู่จริง
   const current = await getLocation(db, id);
-  if (!current) throw new AppError('ไม่พบคลังที่ต้องการแก้ไข', 404);
-  const next = {
-    code: (patch.code ?? current.code).trim().toUpperCase(),
-    name: (patch.name ?? current.name).trim(),
-    is_default: patch.is_default ?? current.is_default,
-    active: patch.active ?? current.active,
-  };
+
+  if (!current) {
+    throw new AppError('ไม่พบคลังที่ต้องการแก้ไข', 404);
+  }
+
+  // 2. เตรียมค่าที่จะใช้หลังแก้ไข
+  const code =
+    patch.code !== undefined
+      ? patch.code.trim().toUpperCase()
+      : current.code;
+
+  const name =
+    patch.name !== undefined
+      ? patch.name.trim()
+      : current.name;
+
+  const isDefault =
+    patch.is_default !== undefined
+      ? Number(patch.is_default)
+      : Number(current.is_default);
+
+  const active =
+    patch.active !== undefined
+      ? Number(patch.active)
+      : Number(current.active);
+
+
+  // ------------------------------------------------------------
+  // 3. ตรวจรหัสคลังว่าง
+  // ------------------------------------------------------------
+
+  if (!code) {
+    throw new AppError('กรุณาระบุรหัสคลัง');
+  }
+
+
+  // ------------------------------------------------------------
+  // 4. ตรวจชื่อคลังว่าง
+  // ------------------------------------------------------------
+
+  if (!name) {
+    throw new AppError('กรุณาระบุชื่อคลัง');
+  }
+
+
+  // ------------------------------------------------------------
+  // 5. ตรวจรหัสคลังซ้ำ
+  // ------------------------------------------------------------
+
+  const duplicateCode = await db
+    .prepare(`
+      SELECT id
+      FROM locations
+      WHERE UPPER(TRIM(code)) = ?
+        AND id != ?
+      LIMIT 1
+    `)
+    .bind(code, id)
+    .first<{ id: number }>();
+
+  if (duplicateCode) {
+    throw new AppError(
+      `รหัสคลัง ${code} ถูกใช้งานอยู่แล้ว`
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // 6. ตรวจชื่อคลังซ้ำ
+  // ------------------------------------------------------------
+
+  const duplicateName = await db
+    .prepare(`
+      SELECT id
+      FROM locations
+      WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+        AND id != ?
+      LIMIT 1
+    `)
+    .bind(name, id)
+    .first<{ id: number }>();
+
+  if (duplicateName) {
+    throw new AppError(
+      `ชื่อคลัง "${name}" ถูกใช้งานอยู่แล้ว`
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // 7. ตรวจค่า is_default
+  // ------------------------------------------------------------
+
+  if (isDefault !== 0 && isDefault !== 1) {
+    throw new AppError(
+      'ค่า is_default ไม่ถูกต้อง'
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // 8. ตรวจค่า active
+  // ------------------------------------------------------------
+
+  if (active !== 0 && active !== 1) {
+    throw new AppError(
+      'ค่า active ไม่ถูกต้อง'
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // 9. ถ้าจะปิดคลัง ต้องตรวจว่ามีสินค้าเหลือหรือไม่
+  // ------------------------------------------------------------
+
+  if (active === 0 && Number(current.active) === 1) {
+
+    const used = await db
+      .prepare(`
+        SELECT COUNT(*) AS c
+        FROM stock_levels s
+        INNER JOIN products p
+          ON p.id = s.product_id
+        WHERE s.location_id = ?
+          AND p.active = 1
+          AND ABS(s.qty) > 0.000001
+      `)
+      .bind(id)
+      .first<{ c: number }>();
+
+    if ((used?.c ?? 0) > 0) {
+      throw new AppError(
+        'คลังนี้ยังมีสินค้าคงเหลืออยู่ ย้ายสินค้าออกก่อนจึงจะปิดคลังได้'
+      );
+    }
+  }
+
+
+  // ------------------------------------------------------------
+  // 10. ห้ามปิดคลังที่เป็นคลังหลัก
+  //     ต้องเลือกคลังอื่นเป็นค่าเริ่มต้นก่อน
+  // ------------------------------------------------------------
+
+  if (
+    active === 0 &&
+    Number(current.active) === 1 &&
+    Number(current.is_default) === 1
+  ) {
+
+    throw new AppError(
+      'ไม่สามารถปิดคลังหลักได้ กรุณาเลือกคลังอื่นเป็นคลังหลักก่อน'
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // 11. ถ้าตั้งเป็นคลังหลัก ต้องเปิดใช้งานอยู่
+  // ------------------------------------------------------------
+
+  if (isDefault === 1 && active !== 1) {
+    throw new AppError(
+      'คลังที่เป็นคลังหลักต้องเปิดใช้งานอยู่'
+    );
+  }
+
+
+  // ------------------------------------------------------------
+  // 12. แก้ไขข้อมูล
+  // ------------------------------------------------------------
+
   await db
-    .prepare('UPDATE locations SET code = ?, name = ?, is_default = ?, active = ? WHERE id = ?')
-    .bind(next.code, next.name, next.is_default, next.active, id)
+    .prepare(`
+      UPDATE locations
+      SET
+        code = ?,
+        name = ?,
+        is_default = ?,
+        active = ?
+      WHERE id = ?
+    `)
+    .bind(
+      code,
+      name,
+      isDefault,
+      active,
+      id,
+    )
     .run();
-  if (next.is_default) await db.prepare('UPDATE locations SET is_default = 0 WHERE id != ?').bind(id).run();
+
+
+  // ------------------------------------------------------------
+  // 13. ถ้าคลังนี้เป็นคลังหลัก
+  //     ให้คลังอื่นยกเลิกสถานะคลังหลัก
+  // ------------------------------------------------------------
+
+  if (isDefault === 1) {
+
+    await db
+      .prepare(`
+        UPDATE locations
+        SET is_default = 0
+        WHERE id != ?
+      `)
+      .bind(id)
+      .run();
+  }
+
+
+  // ------------------------------------------------------------
+  // 14. ส่งข้อมูลล่าสุดกลับ
+  // ------------------------------------------------------------
+
   return getLocation(db, id);
 }
+
 
 export async function deleteLocation(db: D1Database, id: number): Promise<void> {
   const used = await db
