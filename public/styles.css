@@ -43,7 +43,7 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
-
+/*
 @media (prefers-color-scheme: dark) {
   :root {
     --bg:        #0B0E13;
@@ -68,7 +68,7 @@
     --shadow-lg: 0 -8px 40px rgba(0, 0, 0, .5);
   }
 }
-
+*/
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 /* ต้องมาก่อนทุก .class ที่กำหนด display เอง ไม่งั้น attribute hidden จะถูก override */
 [hidden] { display: none !important; }
