@@ -654,28 +654,259 @@ function openLocationForm(location = null) {
 }
 
 /* ------------------------------------------------------------- สแกน */
+let scanStream = null;
+let scanTimer = null;
+let scanLocked = false;
 
 async function scan() {
-  const manual = prompt('กรอกบาร์โค้ด');
-  return manual?.trim() || null;
-}
+  // ถ้าเครื่องไม่รองรับ BarcodeDetector
+  if (!('BarcodeDetector' in window)) {
+    const manual = prompt(
+      'อุปกรณ์หรือเบราว์เซอร์นี้ไม่รองรับการสแกนด้วยกล้อง\n\nกรุณากรอกบาร์โค้ด'
+    );
+    return manual?.trim() || null;
+  }
 
-async function scanAndOpen() {
-  const code = await scan();
-  if (!code) return;
   try {
-    const { product } = await api(`/products/lookup/${encodeURIComponent(code)}`);
-    openProduct(product.id);
-  } catch {
-    if (confirm(`ไม่พบสินค้าบาร์โค้ด ${code}\nต้องการเพิ่มเป็นสินค้าใหม่หรือไม่?`)) {
-      openProductForm();
-      setTimeout(() => {
-        const el = $('#productForm')?.barcode;
-        if (el) el.value = code;
-      }, 60);
-    }
+    const supported = await BarcodeDetector.getSupportedFormats();
+
+    const formats = [
+      'ean_13',
+      'ean_8',
+      'upc_a',
+      'upc_e',
+      'code_128',
+      'code_39',
+      'code_93',
+      'codabar',
+      'itf',
+      'qr_code',
+    ].filter((f) => supported.includes(f));
+
+    const detector = new BarcodeDetector({
+      formats: formats.length ? formats : supported,
+    });
+
+    return await openBarcodeScanner(detector);
+
+  } catch (err) {
+    console.error('Barcode scanner error:', err);
+
+    const manual = prompt(
+      'ไม่สามารถเปิดกล้องสแกนบาร์โค้ดได้\n\nกรุณากรอกบาร์โค้ด'
+    );
+
+    return manual?.trim() || null;
   }
 }
+
+
+function openBarcodeScanner(detector) {
+  return new Promise(async (resolve) => {
+
+    scanLocked = false;
+
+    const scanner = document.createElement('div');
+
+    scanner.id = 'barcodeScanner';
+
+    scanner.innerHTML = `
+      <div class="barcode-scanner">
+
+        <div class="barcode-scanner__head">
+          <strong>สแกนบาร์โค้ด</strong>
+          <button type="button" id="closeBarcodeScanner">✕</button>
+        </div>
+
+        <div class="barcode-scanner__camera">
+          <video
+            id="barcodeVideo"
+            autoplay
+            muted
+            playsinline>
+          </video>
+
+          <div class="barcode-scanner__frame">
+            <div class="barcode-scanner__line"></div>
+          </div>
+        </div>
+
+        <div class="barcode-scanner__status" id="barcodeScannerStatus">
+          กำลังเปิดกล้อง...
+        </div>
+
+        <button
+          type="button"
+          class="btn btn--ghost btn--block"
+          id="barcodeManual">
+          กรอกบาร์โค้ดเอง
+        </button>
+
+      </div>
+    `;
+
+    document.body.appendChild(scanner);
+
+    const video = scanner.querySelector('#barcodeVideo');
+    const status = scanner.querySelector('#barcodeScannerStatus');
+
+    const cleanup = (value = null) => {
+      if (scanTimer) {
+        cancelAnimationFrame(scanTimer);
+        scanTimer = null;
+      }
+
+      if (scanStream) {
+        scanStream.getTracks().forEach((track) => track.stop());
+        scanStream = null;
+      }
+
+      scanner.remove();
+      document.body.style.overflow = '';
+
+      resolve(value);
+    };
+
+    scanner.querySelector('#closeBarcodeScanner')
+      .addEventListener('click', () => cleanup(null));
+
+    scanner.querySelector('#barcodeManual')
+      .addEventListener('click', () => {
+        cleanup(null);
+
+        setTimeout(() => {
+          const manual = prompt('กรอกบาร์โค้ด');
+
+          if (manual?.trim()) {
+            resolve(manual.trim());
+          }
+        }, 50);
+      });
+
+    try {
+      scanStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: {
+            ideal: 'environment'
+          },
+          width: {
+            ideal: 1280
+          },
+          height: {
+            ideal: 720
+          }
+        },
+        audio: false
+      });
+
+      video.srcObject = scanStream;
+
+      await video.play();
+
+      status.textContent = 'นำบาร์โค้ดมาไว้ในกรอบ';
+
+      const scanFrame = async () => {
+
+        if (scanLocked) return;
+
+        if (
+          video.readyState >= 2 &&
+          video.videoWidth > 0 &&
+          video.videoHeight > 0
+        ) {
+
+          try {
+            const codes = await detector.detect(video);
+
+            if (codes.length > 0) {
+
+              const code = codes[0]?.rawValue?.trim();
+
+              if (code) {
+                scanLocked = true;
+
+                status.textContent = `พบรหัส ${code}`;
+
+                // สั่นมือถือเมื่ออ่านสำเร็จ
+                if (navigator.vibrate) {
+                  navigator.vibrate(150);
+                }
+
+                setTimeout(() => {
+                  cleanup(code);
+                }, 250);
+
+                return;
+              }
+            }
+
+          } catch (err) {
+            console.warn('Barcode detect:', err);
+          }
+        }
+
+        scanTimer = requestAnimationFrame(scanFrame);
+      };
+
+      scanTimer = requestAnimationFrame(scanFrame);
+
+    } catch (err) {
+
+      console.error('Camera error:', err);
+
+      status.textContent =
+        'เปิดกล้องไม่ได้ กรุณาอนุญาตให้เว็บไซต์ใช้กล้อง';
+
+      // ให้ผู้ใช้กดกรอกเองได้
+    }
+  });
+}
+
+
+/* -------------------------------------------------------------
+   เปิดสินค้าโดยใช้ Barcode
+------------------------------------------------------------- */
+
+async function scanAndOpen() {
+
+  const code = await scan();
+
+  if (!code) return;
+
+  try {
+
+    const { product } =
+      await api(
+        `/products/lookup/${encodeURIComponent(code)}`
+      );
+
+    openProduct(product.id);
+
+  } catch (err) {
+
+    const create = confirm(
+      `ไม่พบสินค้าบาร์โค้ด ${code}\n\n` +
+      `ต้องการเพิ่มเป็นสินค้าใหม่หรือไม่?`
+    );
+
+    if (!create) return;
+
+    openProductForm();
+
+    setTimeout(() => {
+
+      const input =
+        $('#productForm')?.querySelector('[name="barcode"]');
+
+      if (input) {
+        input.value = code;
+        input.focus();
+      }
+
+    }, 100);
+  }
+}
+
 
 /* ----------------------------------------------------------- routing */
 
