@@ -81,7 +81,14 @@ api.put('/locations/:id', async (c) => {
   return c.json(await repo.updateLocation(c.env.DB, Number(c.req.param('id')), patch as never));
 });
 
+api.delete('/locations/:id', async (c) => {
+  await repo.deleteLocation(
+    c.env.DB,
+    Number(c.req.param('id')),
+  );
 
+  return c.json({ ok: true });
+});
 
 /* ------------------------------------------------------------- products */
 
