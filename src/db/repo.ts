@@ -888,24 +888,95 @@ export interface MovementRow {
   location_name: string;
   location_code: string;
 }
-
 export async function listMovements(
   db: D1Database,
-  opts: { productId?: number; locationId?: number; limit?: number } = {},
+  opts: {
+    productId?: number;
+    locationId?: number;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  } = {},
 ): Promise<MovementRow[]> {
   const where: string[] = [];
   const binds: unknown[] = [];
-  if (opts.productId) { where.push('m.product_id = ?'); binds.push(opts.productId); }
-  if (opts.locationId) { where.push('m.location_id = ?'); binds.push(opts.locationId); }
+
+  if (opts.productId) {
+    where.push('m.product_id = ?');
+    binds.push(opts.productId);
+  }
+
+  if (opts.locationId) {
+    where.push('m.location_id = ?');
+    binds.push(opts.locationId);
+  }
+
+  /*
+   * วันที่เริ่มต้น
+   *
+   * created_at ในฐานข้อมูลเป็น UTC
+   * จึงแปลงเป็นเวลาไทย (+7 ชั่วโมง) ก่อนเปรียบเทียบ
+   */
+  if (opts.startDate) {
+    where.push(`date(m.created_at, '+7 hours') >= date(?)`);
+    binds.push(opts.startDate);
+  }
+
+  /*
+   * วันที่สิ้นสุด
+   *
+   * ใช้ <= endDate หลังแปลงเป็นเวลาไทย
+   */
+  if (opts.endDate) {
+    where.push(`date(m.created_at, '+7 hours') <= date(?)`);
+    binds.push(opts.endDate);
+  }
+
   const sql = `
-    SELECT m.id, m.ref, m.type, m.qty, m.delta, m.balance_after, m.note, m.actor_name, m.source, m.created_at,
-           p.name AS product_name, p.sku, p.unit, l.name AS location_name, l.code AS location_code
+    SELECT
+      m.id,
+      m.ref,
+      m.type,
+      m.qty,
+      m.delta,
+      m.balance_after,
+      m.note,
+      m.actor_name,
+      m.source,
+      m.created_at,
+
+      p.name AS product_name,
+      p.sku,
+      p.unit,
+
+      l.name AS location_name,
+      l.code AS location_code
+
     FROM movements m
-    JOIN products p ON p.id = m.product_id
-    JOIN locations l ON l.id = m.location_id
+
+    JOIN products p
+      ON p.id = m.product_id
+
+    JOIN locations l
+      ON l.id = m.location_id
+
     ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-    ORDER BY m.id DESC LIMIT ?`;
-  const { results } = await db.prepare(sql).bind(...binds, opts.limit ?? 50).all<MovementRow>();
+
+    ORDER BY m.id DESC
+
+    LIMIT ?
+  `;
+
+  const limit = Math.min(
+    Math.max(Number(opts.limit ?? 50), 1),
+    200,
+  );
+
+  const { results } = await db
+    .prepare(sql)
+    .bind(...binds, limit)
+    .all<MovementRow>();
+
   return results ?? [];
 }
 
