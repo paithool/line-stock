@@ -303,7 +303,7 @@ function renderSettingsLocations(byLocation = []) {
 
 /* ------------------------------------------------------------ ประวัติ */
 async function renderHistory() {
-  const list = $('#historyList');
+  const list = $('#historyResults');
 
   if (!list) return;
 
