@@ -349,11 +349,7 @@ const startDate =
 const endDate =
   endInput?.value || formatDate(defaultEnd);
 
-    console.log(
-      'HISTORY SEARCH:',
-      startDate,
-      endDate
-    );
+    
 
     // ----------------------------------------------------------
     // เรียก API /history
