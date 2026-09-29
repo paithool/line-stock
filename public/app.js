@@ -302,8 +302,9 @@ function renderSettingsLocations(byLocation = []) {
 }
 
 /* ------------------------------------------------------------ ประวัติ */
-async function renderHistory() {
-  const list = $('#historyResults');
+
+  async function renderHistory() {
+  const list = $('#historyList');
 
   if (!list) return;
 
