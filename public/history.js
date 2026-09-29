@@ -1,6 +1,6 @@
 /* ============================================================
    Stock — History Page
-   ตรงกับ history.html เวอร์ชันปัจจุบัน
+   history.html เวอร์ชันปัจจุบัน
    ============================================================ */
 
 const API_BASE = '/api';
@@ -64,6 +64,7 @@ async function api(path, options = {}) {
   if (!response.ok) {
     const error = new Error(
       data.error ||
+      data.message ||
       `เกิดข้อผิดพลาด (${response.status})`
     );
 
@@ -112,18 +113,36 @@ function getDefaultEndDate() {
 function formatDateTime(sqlDate) {
   if (!sqlDate) return '-';
 
-  const text =
-    String(sqlDate).replace(' ', 'T');
+  const raw = String(sqlDate);
 
-  const date =
-    new Date(
-      text.endsWith('Z')
-        ? text
-        : `${text}Z`
-    );
+  /*
+   * SQLite มักส่ง:
+   * 2026-09-29 10:30:00
+   */
+
+  const normalized =
+    raw.includes('T')
+      ? raw
+      : raw.replace(' ', 'T');
+
+  let date =
+    new Date(normalized);
+
+  /*
+   * ถ้าไม่มี timezone ให้ถือว่าเป็นเวลาไทย
+   */
+  if (
+    Number.isNaN(date.getTime()) &&
+    !normalized.endsWith('Z')
+  ) {
+    date =
+      new Date(
+        `${normalized}+07:00`
+      );
+  }
 
   if (Number.isNaN(date.getTime())) {
-    return sqlDate;
+    return raw;
   }
 
   return date.toLocaleString(
@@ -138,6 +157,35 @@ function formatDateTime(sqlDate) {
       second: '2-digit',
     }
   );
+}
+
+function getMovementTime(value) {
+  if (!value) return 0;
+
+  const raw =
+    String(value);
+
+  const normalized =
+    raw.includes('T')
+      ? raw
+      : raw.replace(' ', 'T');
+
+  let time =
+    new Date(normalized).getTime();
+
+  if (
+    Number.isNaN(time) &&
+    !normalized.endsWith('Z')
+  ) {
+    time =
+      new Date(
+        `${normalized}+07:00`
+      ).getTime();
+  }
+
+  return Number.isNaN(time)
+    ? 0
+    : time;
 }
 
 /* ============================================================
@@ -183,7 +231,7 @@ const MOVE_META = {
 };
 
 /* ============================================================
-   ตรวจว่าเป็นรายการ "เพิ่มเข้า" ตอนสร้างสินค้า
+   ตรวจรายการเพิ่มสินค้า
    ============================================================ */
 
 function isInitialAdd(movement) {
@@ -195,7 +243,7 @@ function isInitialAdd(movement) {
 }
 
 /* ============================================================
-   สร้าง HTML รายการประวัติ
+   สร้าง HTML รายการ
    ============================================================ */
 
 function movementRow(movement) {
@@ -223,6 +271,13 @@ function movementRow(movement) {
   const positive =
     delta > 0;
 
+  const deltaColor =
+    positive
+      ? 'var(--receive, #16a34a)'
+      : delta < 0
+        ? 'var(--issue, #dc2626)'
+        : 'var(--muted, #64748b)';
+
   return `
     <div class="history-row">
 
@@ -243,11 +298,13 @@ function movementRow(movement) {
           ${esc(meta.label)}
 
           ·
+
           ${esc(
             movement.location_name || '-'
           )}
 
           ·
+
           ${formatDateTime(
             movement.created_at
           )}
@@ -271,7 +328,8 @@ function movementRow(movement) {
         </div>
 
         ${
-          movement.ref || movement.sku
+          movement.ref ||
+          movement.sku
             ? `
               <div class="history-row__meta">
 
@@ -309,13 +367,7 @@ function movementRow(movement) {
 
         <div
           class="history-row__delta"
-          style="
-            color: ${
-              positive
-                ? 'var(--receive, #16a34a)'
-                : 'var(--issue, #dc2626)'
-            };
-          "
+          style="color:${deltaColor};"
         >
           ${
             positive
@@ -417,7 +469,7 @@ function filterBySearch(rows, keyword) {
 }
 
 /* ============================================================
-   อัปเดตตัวเลขสรุป
+   สรุป
    ============================================================ */
 
 function updateSummary(rows) {
@@ -457,14 +509,16 @@ function updateSummary(rows) {
       row.type === 'receive' ||
       row.type === 'transfer_in'
     ) {
-      receiveTotal += Math.abs(delta);
+      receiveTotal +=
+        Math.abs(delta);
     }
 
     if (
       row.type === 'issue' ||
       row.type === 'transfer_out'
     ) {
-      issueTotal += Math.abs(delta);
+      issueTotal +=
+        Math.abs(delta);
     }
 
   });
@@ -481,7 +535,7 @@ function updateSummary(rows) {
 }
 
 /* ============================================================
-   แสดงสถานะกำลังโหลด
+   Loading
    ============================================================ */
 
 function showLoading() {
@@ -498,7 +552,7 @@ function showLoading() {
 }
 
 /* ============================================================
-   แสดงว่าไม่มีรายการ
+   Empty
    ============================================================ */
 
 function showEmpty() {
@@ -515,7 +569,7 @@ function showEmpty() {
 }
 
 /* ============================================================
-   แสดงข้อผิดพลาด
+   Error
    ============================================================ */
 
 function showError(error) {
@@ -546,6 +600,7 @@ function showError(error) {
    ============================================================ */
 
 async function loadHistory() {
+
   const results =
     $('#historyResults');
 
@@ -573,10 +628,11 @@ async function loadHistory() {
     'all';
 
   /* ----------------------------------------------------------
-     ต้องมีวันที่ทั้งสองช่องก่อนค้นหา
+     ตรวจวันที่
      ---------------------------------------------------------- */
 
   if (!startDate || !endDate) {
+
     results.innerHTML = `
       <div class="history-empty">
         กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด
@@ -588,11 +644,8 @@ async function loadHistory() {
     return;
   }
 
-  /* ----------------------------------------------------------
-     ตรวจวันที่
-     ---------------------------------------------------------- */
-
   if (startDate > endDate) {
+
     results.innerHTML = `
       <div
         class="history-empty"
@@ -622,10 +675,10 @@ async function loadHistory() {
     );
 
     /* --------------------------------------------------------
-       เรียก API
-    -------------------------------------------------------- */
+       API
+       -------------------------------------------------------- */
 
-    const rows =
+    const response =
       await api(
         `/movements?` +
         `startDate=${encodeURIComponent(
@@ -639,14 +692,49 @@ async function loadHistory() {
 
     console.log(
       'API movements:',
-      rows
+      response
     );
 
-    /* --------------------------------------------------------
-       ตรวจว่าข้อมูลเป็น Array หรือไม่
-    -------------------------------------------------------- */
+    /*
+     * รองรับทั้ง:
+     *
+     * [
+     *   {...}
+     * ]
+     *
+     * หรือ
+     *
+     * {
+     *   data: [...]
+     * }
+     *
+     * หรือ
+     *
+     * {
+     *   movements: [...]
+     * }
+     */
 
-    if (!Array.isArray(rows)) {
+    let rows;
+
+    if (Array.isArray(response)) {
+
+      rows = response;
+
+    } else if (
+      Array.isArray(response.data)
+    ) {
+
+      rows = response.data;
+
+    } else if (
+      Array.isArray(response.movements)
+    ) {
+
+      rows = response.movements;
+
+    } else {
+
       throw new Error(
         'API ไม่ได้ส่งข้อมูลรายการกลับมาเป็น Array'
       );
@@ -654,7 +742,7 @@ async function loadHistory() {
 
     /* --------------------------------------------------------
        กรองประเภท
-    -------------------------------------------------------- */
+       -------------------------------------------------------- */
 
     let filtered =
       filterByType(
@@ -664,7 +752,7 @@ async function loadHistory() {
 
     /* --------------------------------------------------------
        กรองคำค้น
-    -------------------------------------------------------- */
+       -------------------------------------------------------- */
 
     filtered =
       filterBySearch(
@@ -674,30 +762,26 @@ async function loadHistory() {
 
     /* --------------------------------------------------------
        เรียงใหม่ล่าสุดก่อน
-    -------------------------------------------------------- */
+       -------------------------------------------------------- */
 
     filtered.sort((a, b) => {
 
       const dateA =
-        new Date(
-          String(
-            a.created_at || ''
-          ).replace(' ', 'T') + 'Z'
-        ).getTime();
+        getMovementTime(
+          a.created_at
+        );
 
       const dateB =
-        new Date(
-          String(
-            b.created_at || ''
-          ).replace(' ', 'T') + 'Z'
-        ).getTime();
+        getMovementTime(
+          b.created_at
+        );
 
       return dateB - dateA;
     });
 
     /* --------------------------------------------------------
-       อัปเดตสรุป
-    -------------------------------------------------------- */
+       สรุป
+       -------------------------------------------------------- */
 
     updateSummary(
       filtered
@@ -705,7 +789,7 @@ async function loadHistory() {
 
     /* --------------------------------------------------------
        ไม่มีรายการ
-    -------------------------------------------------------- */
+       -------------------------------------------------------- */
 
     if (!filtered.length) {
       showEmpty();
@@ -713,9 +797,8 @@ async function loadHistory() {
     }
 
     /* --------------------------------------------------------
-       แสดงรายการด้านล่าง
-       ส่วนค้นหาด้านบนยังอยู่เหมือนเดิม
-    -------------------------------------------------------- */
+       แสดงรายการ
+       -------------------------------------------------------- */
 
     results.innerHTML =
       filtered
@@ -740,42 +823,62 @@ async function loadHistory() {
 }
 
 /* ============================================================
-   ค้นหาอัตโนมัติเมื่อเลือกวันที่ครบ
+   ค้นหาเมื่อเปลี่ยนวันที่
    ============================================================ */
 
 function autoSearchByDate() {
-  alert('AUTO SEARCH ทำงานแล้ว');
 
-  const start = $('#startDate')?.value;
-  const end = $('#endDate')?.value;
+  const start =
+    $('#startDate')?.value;
 
-  console.log('วันที่เปลี่ยน:', start, end);
+  const end =
+    $('#endDate')?.value;
 
-  // ต้องเลือกครบทั้ง 2 วัน
+  console.log(
+    'วันที่เปลี่ยน:',
+    start,
+    end
+  );
+
+  /*
+   * ยังเลือกไม่ครบ 2 ช่อง
+   * ไม่ต้องค้นหา
+   */
+
   if (!start || !end) {
     return;
   }
 
-  // วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด
+  /*
+   * วันที่ผิด
+   */
+
   if (start > end) {
-    alert('วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด');
+
+    const results =
+      $('#historyResults');
+
+    if (results) {
+      results.innerHTML = `
+        <div
+          class="history-empty"
+          style="color:var(--danger,#dc2626)"
+        >
+          วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด
+        </div>
+      `;
+    }
+
+    updateSummary([]);
+
     return;
   }
 
-  loadHistory()
-    .then(() => {
-      alert('โหลดเสร็จแล้ว กำลังพิมพ์');
+  /*
+   * ค้นหาอัตโนมัติ
+   */
 
-      setTimeout(() => {
-        window.print();
-      }, 500);
-    })
-    .catch((error) => {
-      console.error(
-        'โหลดประวัติก่อนพิมพ์ไม่สำเร็จ:',
-        error
-      );
-    });
+  loadHistory();
 }
 
 /* ============================================================
@@ -795,7 +898,6 @@ function selectHistoryType(button) {
     'is-active'
   );
 
-  /* ค้นหาใหม่ทันที */
   loadHistory();
 }
 
@@ -812,12 +914,9 @@ function searchByText() {
   );
 
   searchTimer =
-    setTimeout(
-      () => {
-        loadHistory();
-      },
-      300
-    );
+    setTimeout(() => {
+      loadHistory();
+    }, 300);
 }
 
 /* ============================================================
@@ -865,7 +964,6 @@ function clearHistorySearch() {
     );
   }
 
-  /* โหลดใหม่ */
   loadHistory();
 }
 
@@ -893,12 +991,11 @@ function goBack() {
     return;
   }
 
-  window.location.href =
-    '/';
+  window.location.href = '/';
 }
 
 /* ============================================================
-   เริ่มต้นหน้า
+   เริ่มต้น
    ============================================================ */
 
 document.addEventListener(
@@ -910,8 +1007,8 @@ document.addEventListener(
     );
 
     /* --------------------------------------------------------
-       ตั้งวันที่เริ่มต้น / สิ้นสุด
-    -------------------------------------------------------- */
+       ตั้งวันที่เริ่มต้น
+       -------------------------------------------------------- */
 
     const start =
       $('#startDate');
@@ -927,6 +1024,10 @@ document.addEventListener(
         getDefaultStartDate();
     }
 
+    /* --------------------------------------------------------
+       ตั้งวันที่สิ้นสุด
+       -------------------------------------------------------- */
+
     if (
       end &&
       !end.value
@@ -936,22 +1037,14 @@ document.addEventListener(
     }
 
     /* --------------------------------------------------------
-       เลือกวันที่เริ่มต้น
-    -------------------------------------------------------- */
+       เปลี่ยนวันที่
+       ค้นหาอัตโนมัติ
+       -------------------------------------------------------- */
 
-    start?.addEventListener('change', () => {
-  alert('วันที่เริ่มต้นเปลี่ยน');
-  autoSearchByDate();
-});
-
-end?.addEventListener('change', () => {
-  alert('วันที่สิ้นสุดเปลี่ยน');
-  autoSearchByDate();
-});
-
-    /* --------------------------------------------------------
-       เลือกวันที่สิ้นสุด
-    -------------------------------------------------------- */
+    start?.addEventListener(
+      'change',
+      autoSearchByDate
+    );
 
     end?.addEventListener(
       'change',
@@ -959,9 +1052,8 @@ end?.addEventListener('change', () => {
     );
 
     /* --------------------------------------------------------
-       ค้นหาชื่อ / SKU / คลัง / ผู้ทำรายการ
-       ค้นหาอัตโนมัติหลังหยุดพิมพ์ 300ms
-    -------------------------------------------------------- */
+       ค้นหาสินค้า / SKU / คลัง / ผู้ทำรายการ
+       -------------------------------------------------------- */
 
     $('#searchInput')
       ?.addEventListener(
@@ -971,7 +1063,7 @@ end?.addEventListener('change', () => {
 
     /* --------------------------------------------------------
        ปุ่มประเภท
-    -------------------------------------------------------- */
+       -------------------------------------------------------- */
 
     $$('#historyTypes .chip')
       .forEach((button) => {
@@ -989,7 +1081,7 @@ end?.addEventListener('change', () => {
 
     /* --------------------------------------------------------
        ล้างการค้นหา
-    -------------------------------------------------------- */
+       -------------------------------------------------------- */
 
     $('#clearBtn')
       ?.addEventListener(
@@ -999,7 +1091,7 @@ end?.addEventListener('change', () => {
 
     /* --------------------------------------------------------
        พิมพ์
-    -------------------------------------------------------- */
+       -------------------------------------------------------- */
 
     $('#printBtn')
       ?.addEventListener(
@@ -1009,7 +1101,7 @@ end?.addEventListener('change', () => {
 
     /* --------------------------------------------------------
        กลับ
-    -------------------------------------------------------- */
+       -------------------------------------------------------- */
 
     $('#backBtn')
       ?.addEventListener(
@@ -1018,9 +1110,8 @@ end?.addEventListener('change', () => {
       );
 
     /* --------------------------------------------------------
-       โหลดข้อมูลครั้งแรก
-       ใช้วันที่เดือนปัจจุบัน
-    -------------------------------------------------------- */
+       โหลดครั้งแรก
+       -------------------------------------------------------- */
 
     loadHistory();
 
