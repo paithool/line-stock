@@ -1,1119 +1,1003 @@
+History .js
 /* ============================================================
-   Stock — History Page
-   history.html เวอร์ชันปัจจุบัน
-   ============================================================ */
+Stock — History Page
+ตรงกับ history.html เวอร์ชันปัจจุบัน
+============================================================ */
 
 const API_BASE = '/api';
 
 /* ============================================================
-   Helpers
-   ============================================================ */
+Helpers
+============================================================ */
 
 const $ = (selector, root = document) =>
-  root.querySelector(selector);
+root.querySelector(selector);
 
 const $$ = (selector, root = document) =>
-  [...root.querySelectorAll(selector)];
+[...root.querySelectorAll(selector)];
 
 function esc(value) {
-  return String(value ?? '').replace(
-    /[&<>"']/g,
-    (char) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    })[char]
-  );
+return String(value ?? '').replace(
+/[&<>"']/g,
+(char) => ({
+'&': '&',
+'<': '<',
+'>': '>',
+'"': '"',
+"'": ''',
+})[char]
+);
 }
 
 function fmt(value) {
-  const number =
-    Math.round((Number(value) || 0) * 1000) / 1000;
+const number =
+Math.round((Number(value) || 0) * 1000) / 1000;
 
-  return number.toLocaleString('th-TH', {
-    maximumFractionDigits: 3,
-  });
+return number.toLocaleString('th-TH', {
+maximumFractionDigits: 3,
+});
 }
 
 /* ============================================================
-   API
-   ============================================================ */
+API
+============================================================ */
 
 async function api(path, options = {}) {
-  const headers = {
-    ...(options.body
-      ? { 'content-type': 'application/json' }
-      : {}),
-    ...(options.headers || {}),
-  };
+const headers = {
+...(options.body
+? { 'content-type': 'application/json' }
+: {}),
+...(options.headers || {}),
+};
 
-  const response = await fetch(
-    `${API_BASE}${path}`,
-    {
-      ...options,
-      headers,
-      credentials: 'same-origin',
-    }
-  );
+const response = await fetch(
+${API_BASE}${path},
+{
+...options,
+headers,
+credentials: 'same-origin',
+}
+);
 
-  const data =
-    await response.json().catch(() => ({}));
+const data =
+await response.json().catch(() => ({}));
 
-  if (!response.ok) {
-    const error = new Error(
-      data.error ||
-      data.message ||
-      `เกิดข้อผิดพลาด (${response.status})`
-    );
+if (!response.ok) {
+const error = new Error(
+data.error ||
+เกิดข้อผิดพลาด (${response.status})
+);
 
-    error.status = response.status;
+error.status = response.status;  
 
-    throw error;
-  }
+throw error;
 
-  return data;
+}
+
+return data;
 }
 
 /* ============================================================
-   วันที่
-   ============================================================ */
+วันที่
+============================================================ */
 
 function pad(number) {
-  return String(number).padStart(2, '0');
+return String(number).padStart(2, '0');
 }
 
 function getDefaultStartDate() {
-  const now = new Date();
+const now = new Date();
 
-  return (
-    `${now.getFullYear()}-` +
-    `${pad(now.getMonth() + 1)}-01`
-  );
+return (
+${now.getFullYear()}- +
+${pad(now.getMonth() + 1)}-01
+);
 }
 
 function getDefaultEndDate() {
-  const now = new Date();
+const now = new Date();
 
-  const lastDay =
-    new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0
-    );
+const lastDay =
+new Date(
+now.getFullYear(),
+now.getMonth() + 1,
+0
+);
 
-  return (
-    `${lastDay.getFullYear()}-` +
-    `${pad(lastDay.getMonth() + 1)}-` +
-    `${pad(lastDay.getDate())}`
-  );
+return (
+${lastDay.getFullYear()}- +
+${pad(lastDay.getMonth() + 1)}- +
+${pad(lastDay.getDate())}
+);
 }
 
 function formatDateTime(sqlDate) {
-  if (!sqlDate) return '-';
+if (!sqlDate) return '-';
 
-  const raw = String(sqlDate);
+const text =
+String(sqlDate).replace(' ', 'T');
 
-  /*
-   * SQLite มักส่ง:
-   * 2026-09-29 10:30:00
-   */
+const date =
+new Date(
+text.endsWith('Z')
+? text
+: ${text}Z
+);
 
-  const normalized =
-    raw.includes('T')
-      ? raw
-      : raw.replace(' ', 'T');
-
-  let date =
-    new Date(normalized);
-
-  /*
-   * ถ้าไม่มี timezone ให้ถือว่าเป็นเวลาไทย
-   */
-  if (
-    Number.isNaN(date.getTime()) &&
-    !normalized.endsWith('Z')
-  ) {
-    date =
-      new Date(
-        `${normalized}+07:00`
-      );
-  }
-
-  if (Number.isNaN(date.getTime())) {
-    return raw;
-  }
-
-  return date.toLocaleString(
-    'th-TH',
-    {
-      timeZone: 'Asia/Bangkok',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }
-  );
+if (Number.isNaN(date.getTime())) {
+return sqlDate;
 }
 
-function getMovementTime(value) {
-  if (!value) return 0;
-
-  const raw =
-    String(value);
-
-  const normalized =
-    raw.includes('T')
-      ? raw
-      : raw.replace(' ', 'T');
-
-  let time =
-    new Date(normalized).getTime();
-
-  if (
-    Number.isNaN(time) &&
-    !normalized.endsWith('Z')
-  ) {
-    time =
-      new Date(
-        `${normalized}+07:00`
-      ).getTime();
-  }
-
-  return Number.isNaN(time)
-    ? 0
-    : time;
+return date.toLocaleString(
+'th-TH',
+{
+timeZone: 'Asia/Bangkok',
+year: 'numeric',
+month: '2-digit',
+day: '2-digit',
+hour: '2-digit',
+minute: '2-digit',
+second: '2-digit',
+}
+);
 }
 
 /* ============================================================
-   ประเภทการเคลื่อนไหว
-   ============================================================ */
+ประเภทการเคลื่อนไหว
+============================================================ */
 
 const MOVE_META = {
-  issue: {
-    label: 'เบิกออก',
-    icon: '📤',
-    cls: 'issue',
-  },
+issue: {
+label: 'เบิกออก',
+icon: '📤',
+cls: 'issue',
+},
 
-  receive: {
-    label: 'รับเข้า',
-    icon: '📥',
-    cls: 'receive',
-  },
+receive: {
+label: 'รับเข้า',
+icon: '📥',
+cls: 'receive',
+},
 
-  adjust: {
-    label: 'ปรับยอด',
-    icon: '⚖️',
-    cls: 'adjust',
-  },
+adjust: {
+label: 'ปรับยอด',
+icon: '⚖️',
+cls: 'adjust',
+},
 
-  transfer_out: {
-    label: 'ย้ายออก',
-    icon: '🔁',
-    cls: 'transfer',
-  },
+transfer_out: {
+label: 'ย้ายออก',
+icon: '🔁',
+cls: 'transfer',
+},
 
-  transfer_in: {
-    label: 'ย้ายเข้า',
-    icon: '🔁',
-    cls: 'transfer',
-  },
+transfer_in: {
+label: 'ย้ายเข้า',
+icon: '🔁',
+cls: 'transfer',
+},
 
-  archive: {
-    label: 'สินค้าออกจากระบบ',
-    icon: '🗑️',
-    cls: 'archive',
-  },
+archive: {
+label: 'สินค้าออกจากระบบ',
+icon: '🗑️',
+cls: 'archive',
+},
 };
 
 /* ============================================================
-   ตรวจรายการเพิ่มสินค้า
-   ============================================================ */
+ตรวจว่าเป็นรายการ "เพิ่มเข้า" ตอนสร้างสินค้า
+============================================================ */
 
 function isInitialAdd(movement) {
-  return (
-    movement.type === 'receive' &&
-    movement.note ===
-      'จำนวนเริ่มต้นตอนเพิ่มสินค้า'
-  );
+return (
+movement.type === 'receive' &&
+movement.note ===
+'จำนวนเริ่มต้นตอนเพิ่มสินค้า'
+);
 }
 
 /* ============================================================
-   สร้าง HTML รายการ
-   ============================================================ */
+สร้าง HTML รายการประวัติ
+============================================================ */
 
 function movementRow(movement) {
-  const initial =
-    isInitialAdd(movement);
+const initial =
+isInitialAdd(movement);
 
-  const meta =
-    initial
-      ? {
-          label: 'เพิ่มเข้า',
-          icon: '🆕',
-          cls: 'receive',
-        }
-      : (
-          MOVE_META[movement.type] || {
-            label: movement.type || '-',
-            icon: '•',
-            cls: '',
-          }
-        );
+const meta =
+initial
+? {
+label: 'เพิ่มเข้า',
+icon: '🆕',
+cls: 'receive',
+}
+: (
+MOVE_META[movement.type] || {
+label: movement.type || '-',
+icon: '•',
+cls: '',
+}
+);
 
-  const delta =
-    Number(movement.delta) || 0;
+const delta =
+Number(movement.delta) || 0;
 
-  const positive =
-    delta > 0;
+const positive =
+delta > 0;
 
-  const deltaColor =
-    positive
-      ? 'var(--receive, #16a34a)'
-      : delta < 0
-        ? 'var(--issue, #dc2626)'
-        : 'var(--muted, #64748b)';
+return `
+<div class="history-row">
 
-  return `
-    <div class="history-row">
+<div class="history-row__icon">  
+    ${meta.icon}  
+  </div>  
 
-      <div class="history-row__icon">
-        ${meta.icon}
-      </div>
+  <div>  
 
-      <div>
+    <div class="history-row__name">  
+      ${esc(  
+        movement.product_name || '-'  
+      )}  
+    </div>  
 
-        <div class="history-row__name">
-          ${esc(
-            movement.product_name || '-'
-          )}
-        </div>
+    <div class="history-row__meta">  
 
-        <div class="history-row__meta">
+      ${esc(meta.label)}  
 
-          ${esc(meta.label)}
+      ·  
+      ${esc(  
+        movement.location_name || '-'  
+      )}  
 
-          ·
+      ·  
+      ${formatDateTime(  
+        movement.created_at  
+      )}  
 
-          ${esc(
-            movement.location_name || '-'
-          )}
+      ${  
+        movement.actor_name  
+          ? ` · ${esc(  
+              movement.actor_name  
+            )}`  
+          : ''  
+      }  
 
-          ·
+      ${  
+        movement.note && !initial  
+          ? ` · ${esc(  
+              movement.note  
+            )}`  
+          : ''  
+      }  
 
-          ${formatDateTime(
-            movement.created_at
-          )}
+    </div>  
 
-          ${
-            movement.actor_name
-              ? ` · ${esc(
-                  movement.actor_name
-                )}`
-              : ''
-          }
+    ${  
+      movement.ref || movement.sku  
+        ? `  
+          <div class="history-row__meta">  
 
-          ${
-            movement.note && !initial
-              ? ` · ${esc(
-                  movement.note
-                )}`
-              : ''
-          }
+            ${  
+              movement.ref  
+                ? `เลขที่: ${esc(  
+                    movement.ref  
+                  )}`  
+                : ''  
+            }  
 
-        </div>
+            ${  
+              movement.ref &&  
+              movement.sku  
+                ? ' · '  
+                : ''  
+            }  
 
-        ${
-          movement.ref ||
-          movement.sku
-            ? `
-              <div class="history-row__meta">
+            ${  
+              movement.sku  
+                ? `SKU: ${esc(  
+                    movement.sku  
+                  )}`  
+                : ''  
+            }  
 
-                ${
-                  movement.ref
-                    ? `เลขที่: ${esc(
-                        movement.ref
-                      )}`
-                    : ''
-                }
+          </div>  
+        `  
+        : ''  
+    }  
 
-                ${
-                  movement.ref &&
-                  movement.sku
-                    ? ' · '
-                    : ''
-                }
+  </div>  
 
-                ${
-                  movement.sku
-                    ? `SKU: ${esc(
-                        movement.sku
-                      )}`
-                    : ''
-                }
+  <div class="history-row__right">  
 
-              </div>
-            `
-            : ''
-        }
+    <div  
+      class="history-row__delta"  
+      style="  
+        color: ${  
+          positive  
+            ? 'var(--receive, #16a34a)'  
+            : 'var(--issue, #dc2626)'  
+        };  
+      "  
+    >  
+      ${  
+        positive  
+          ? '+'  
+          : ''  
+      }${fmt(delta)}  
+    </div>  
 
-      </div>
+    <div class="history-row__balance">  
 
-      <div class="history-row__right">
+      เหลือ  
+      ${fmt(  
+        movement.balance_after  
+      )}  
 
-        <div
-          class="history-row__delta"
-          style="color:${deltaColor};"
-        >
-          ${
-            positive
-              ? '+'
-              : ''
-          }${fmt(delta)}
-        </div>
+      ${  
+        movement.unit  
+          ? ` ${esc(  
+              movement.unit  
+            )}`  
+          : ''  
+      }  
 
-        <div class="history-row__balance">
+    </div>  
 
-          เหลือ
-          ${fmt(
-            movement.balance_after
-          )}
+  </div>  
 
-          ${
-            movement.unit
-              ? ` ${esc(
-                  movement.unit
-                )}`
-              : ''
-          }
+</div>
 
-        </div>
-
-      </div>
-
-    </div>
-  `;
+`;
 }
 
 /* ============================================================
-   กรองประเภท
-   ============================================================ */
+กรองประเภท
+============================================================ */
 
 function filterByType(rows, type) {
-  if (!type || type === 'all') {
-    return rows;
-  }
+if (!type || type === 'all') {
+return rows;
+}
 
-  return rows.filter((row) => {
+return rows.filter((row) => {
 
-    const initial =
-      isInitialAdd(row);
+const initial =  
+  isInitialAdd(row);  
 
-    if (type === 'initial') {
-      return initial;
-    }
+if (type === 'initial') {  
+  return initial;  
+}  
 
-    if (type === 'receive') {
-      return (
-        row.type === 'receive' &&
-        !initial
-      );
-    }
+if (type === 'receive') {  
+  return (  
+    row.type === 'receive' &&  
+    !initial  
+  );  
+}  
 
-    if (type === 'transfer') {
-      return (
-        row.type === 'transfer_in' ||
-        row.type === 'transfer_out'
-      );
-    }
+if (type === 'transfer') {  
+  return (  
+    row.type === 'transfer_in' ||  
+    row.type === 'transfer_out'  
+  );  
+}  
 
-    return row.type === type;
-  });
+return row.type === type;
+
+});
 }
 
 /* ============================================================
-   ค้นหาข้อความ
-   ============================================================ */
+ค้นหาข้อความ
+============================================================ */
 
 function filterBySearch(rows, keyword) {
-  const text =
-    String(keyword || '')
-      .trim()
-      .toLowerCase();
+const text =
+String(keyword || '')
+.trim()
+.toLowerCase();
 
-  if (!text) {
-    return rows;
-  }
+if (!text) {
+return rows;
+}
 
-  return rows.filter((row) => {
+return rows.filter((row) => {
 
-    const searchable = [
-      row.product_name,
-      row.sku,
-      row.location_name,
-      row.actor_name,
-      row.note,
-      row.ref,
-      row.type,
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase();
+const searchable = [  
+  row.product_name,  
+  row.sku,  
+  row.location_name,  
+  row.actor_name,  
+  row.note,  
+  row.ref,  
+  row.type,  
+]  
+  .filter(Boolean)  
+  .join(' ')  
+  .toLowerCase();  
 
-    return searchable.includes(text);
-  });
+return searchable.includes(text);
+
+});
 }
 
 /* ============================================================
-   สรุป
-   ============================================================ */
+อัปเดตตัวเลขสรุป
+============================================================ */
 
 function updateSummary(rows) {
-  const total =
-    $('#totalCount');
+const total =
+$('#totalCount');
 
-  const receive =
-    $('#receiveCount');
+const receive =
+$('#receiveCount');
 
-  const issue =
-    $('#issueCount');
+const issue =
+$('#issueCount');
 
-  const historyCount =
-    $('#historyCount');
+const historyCount =
+$('#historyCount');
 
-  if (total) {
-    total.textContent =
-      rows.length.toLocaleString('th-TH');
-  }
+if (total) {
+total.textContent =
+rows.length.toLocaleString('th-TH');
+}
 
-  if (historyCount) {
-    historyCount.textContent =
-      `${rows.length.toLocaleString(
-        'th-TH'
-      )} รายการ`;
-  }
+if (historyCount) {
+historyCount.textContent =
+${rows.length.toLocaleString(   'th-TH'   )} รายการ;
+}
 
-  let receiveTotal = 0;
-  let issueTotal = 0;
+let receiveTotal = 0;
+let issueTotal = 0;
 
-  rows.forEach((row) => {
+rows.forEach((row) => {
 
-    const delta =
-      Number(row.delta) || 0;
+const delta =  
+  Number(row.delta) || 0;  
 
-    if (
-      row.type === 'receive' ||
-      row.type === 'transfer_in'
-    ) {
-      receiveTotal +=
-        Math.abs(delta);
-    }
+if (  
+  row.type === 'receive' ||  
+  row.type === 'transfer_in'  
+) {  
+  receiveTotal += Math.abs(delta);  
+}  
 
-    if (
-      row.type === 'issue' ||
-      row.type === 'transfer_out'
-    ) {
-      issueTotal +=
-        Math.abs(delta);
-    }
+if (  
+  row.type === 'issue' ||  
+  row.type === 'transfer_out'  
+) {  
+  issueTotal += Math.abs(delta);  
+}
 
-  });
+});
 
-  if (receive) {
-    receive.textContent =
-      fmt(receiveTotal);
-  }
+if (receive) {
+receive.textContent =
+fmt(receiveTotal);
+}
 
-  if (issue) {
-    issue.textContent =
-      fmt(issueTotal);
-  }
+if (issue) {
+issue.textContent =
+fmt(issueTotal);
+}
 }
 
 /* ============================================================
-   Loading
-   ============================================================ */
+แสดงสถานะกำลังโหลด
+============================================================ */
 
 function showLoading() {
-  const results =
-    $('#historyResults');
+const results =
+$('#historyResults');
 
-  if (!results) return;
+if (!results) return;
 
-  results.innerHTML = `
-    <div class="history-empty">
-      กำลังค้นหาประวัติ...
-    </div>
-  `;
+results.innerHTML =   <div class="history-empty">   กำลังค้นหาประวัติ...   </div>  ;
 }
 
 /* ============================================================
-   Empty
-   ============================================================ */
+แสดงว่าไม่มีรายการ
+============================================================ */
 
 function showEmpty() {
-  const results =
-    $('#historyResults');
+const results =
+$('#historyResults');
 
-  if (!results) return;
+if (!results) return;
 
-  results.innerHTML = `
-    <div class="history-empty">
-      ไม่มีรายการในช่วงวันที่ที่เลือก
-    </div>
-  `;
+results.innerHTML =   <div class="history-empty">   ไม่มีรายการในช่วงวันที่ที่เลือก   </div>  ;
 }
 
 /* ============================================================
-   Error
-   ============================================================ */
+แสดงข้อผิดพลาด
+============================================================ */
 
 function showError(error) {
-  const results =
-    $('#historyResults');
+const results =
+$('#historyResults');
 
-  if (!results) return;
+if (!results) return;
 
-  results.innerHTML = `
-    <div
-      class="history-empty"
-      style="color:var(--danger,#dc2626)"
-    >
-      โหลดประวัติไม่สำเร็จ
-      <br>
-      <small>
-        ${esc(
-          error?.message ||
-          'เกิดข้อผิดพลาด'
-        )}
-      </small>
-    </div>
-  `;
+results.innerHTML =   <div   class="history-empty"   style="color:var(--danger,#dc2626)"   >   โหลดประวัติไม่สำเร็จ   <br>   <small>   ${esc(   error?.message ||   'เกิดข้อผิดพลาด'   )}   </small>   </div>  ;
 }
 
 /* ============================================================
-   โหลดประวัติ
-   ============================================================ */
+โหลดประวัติ
+============================================================ */
 
 async function loadHistory() {
+const results =
+$('#historyResults');
 
-  const results =
-    $('#historyResults');
+if (!results) {
+console.error(
+'ไม่พบ #historyResults ใน history.html'
+);
+return;
+}
 
-  if (!results) {
-    console.error(
-      'ไม่พบ #historyResults ใน history.html'
-    );
-    return;
-  }
+const startDate =
+$('#startDate')?.value;
 
-  const startDate =
-    $('#startDate')?.value;
+const endDate =
+$('#endDate')?.value;
 
-  const endDate =
-    $('#endDate')?.value;
+const search =
+$('#searchInput')?.value || '';
 
-  const search =
-    $('#searchInput')?.value || '';
+const activeChip =
+$('#historyTypes .chip.is-active');
 
-  const activeChip =
-    $('#historyTypes .chip.is-active');
+const type =
+activeChip?.dataset.type ||
+'all';
 
-  const type =
-    activeChip?.dataset.type ||
-    'all';
+/* ----------------------------------------------------------
+ต้องมีวันที่ทั้งสองช่องก่อนค้นหา
+---------------------------------------------------------- */
 
-  /* ----------------------------------------------------------
-     ตรวจวันที่
-     ---------------------------------------------------------- */
+if (!startDate || !endDate) {
+results.innerHTML =   <div class="history-empty">   กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด   </div>  ;
 
-  if (!startDate || !endDate) {
+updateSummary([]);  
 
-    results.innerHTML = `
-      <div class="history-empty">
-        กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด
-      </div>
-    `;
+return;
 
-    updateSummary([]);
+}
 
-    return;
-  }
+/* ----------------------------------------------------------
+ตรวจวันที่
+---------------------------------------------------------- */
 
-  if (startDate > endDate) {
+if (startDate > endDate) {
+results.innerHTML =   <div   class="history-empty"   style="color:var(--danger,#dc2626)"   >   วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด   </div>  ;
 
-    results.innerHTML = `
-      <div
-        class="history-empty"
-        style="color:var(--danger,#dc2626)"
-      >
-        วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด
-      </div>
-    `;
+updateSummary([]);  
 
-    updateSummary([]);
+return;
 
-    return;
-  }
+}
 
-  showLoading();
+showLoading();
 
-  try {
+try {
 
-    console.log(
-      'ค้นหาประวัติ',
-      {
-        startDate,
-        endDate,
-        type,
-        search,
-      }
-    );
+console.log(  
+  'ค้นหาประวัติ',  
+  {  
+    startDate,  
+    endDate,  
+    type,  
+    search,  
+  }  
+);  
 
-    /* --------------------------------------------------------
-       API
-       -------------------------------------------------------- */
+/* --------------------------------------------------------  
+   เรียก API  
+-------------------------------------------------------- */  
 
-    const response =
-      await api(
-        `/movements?` +
-        `startDate=${encodeURIComponent(
-          startDate
-        )}` +
-        `&endDate=${encodeURIComponent(
-          endDate
-        )}` +
-        `&limit=100`
-      );
+const rows =  
+  await api(  
+    `/movements?` +  
+    `startDate=${encodeURIComponent(  
+      startDate  
+    )}` +  
+    `&endDate=${encodeURIComponent(  
+      endDate  
+    )}` +  
+    `&limit=100`  
+  );  
 
-    console.log(
-      'API movements:',
-      response
-    );
+console.log(  
+  'API movements:',  
+  rows  
+);  
 
-    /*
-     * รองรับทั้ง:
-     *
-     * [
-     *   {...}
-     * ]
-     *
-     * หรือ
-     *
-     * {
-     *   data: [...]
-     * }
-     *
-     * หรือ
-     *
-     * {
-     *   movements: [...]
-     * }
-     */
+/* --------------------------------------------------------  
+   ตรวจว่าข้อมูลเป็น Array หรือไม่  
+-------------------------------------------------------- */  
 
-    let rows;
+if (!Array.isArray(rows)) {  
+  throw new Error(  
+    'API ไม่ได้ส่งข้อมูลรายการกลับมาเป็น Array'  
+  );  
+}  
 
-    if (Array.isArray(response)) {
+/* --------------------------------------------------------  
+   กรองประเภท  
+-------------------------------------------------------- */  
 
-      rows = response;
+let filtered =  
+  filterByType(  
+    rows,  
+    type  
+  );  
 
-    } else if (
-      Array.isArray(response.data)
-    ) {
+/* --------------------------------------------------------  
+   กรองคำค้น  
+-------------------------------------------------------- */  
 
-      rows = response.data;
+filtered =  
+  filterBySearch(  
+    filtered,  
+    search  
+  );  
 
-    } else if (
-      Array.isArray(response.movements)
-    ) {
+/* --------------------------------------------------------  
+   เรียงใหม่ล่าสุดก่อน  
+-------------------------------------------------------- */  
 
-      rows = response.movements;
+filtered.sort((a, b) => {  
 
-    } else {
+  const dateA =  
+    new Date(  
+      String(  
+        a.created_at || ''  
+      ).replace(' ', 'T') + 'Z'  
+    ).getTime();  
 
-      throw new Error(
-        'API ไม่ได้ส่งข้อมูลรายการกลับมาเป็น Array'
-      );
-    }
+  const dateB =  
+    new Date(  
+      String(  
+        b.created_at || ''  
+      ).replace(' ', 'T') + 'Z'  
+    ).getTime();  
 
-    /* --------------------------------------------------------
-       กรองประเภท
-       -------------------------------------------------------- */
+  return dateB - dateA;  
+});  
 
-    let filtered =
-      filterByType(
-        rows,
-        type
-      );
+/* --------------------------------------------------------  
+   อัปเดตสรุป  
+-------------------------------------------------------- */  
 
-    /* --------------------------------------------------------
-       กรองคำค้น
-       -------------------------------------------------------- */
+updateSummary(  
+  filtered  
+);  
 
-    filtered =
-      filterBySearch(
-        filtered,
-        search
-      );
+/* --------------------------------------------------------  
+   ไม่มีรายการ  
+-------------------------------------------------------- */  
 
-    /* --------------------------------------------------------
-       เรียงใหม่ล่าสุดก่อน
-       -------------------------------------------------------- */
+if (!filtered.length) {  
+  showEmpty();  
+  return;  
+}  
 
-    filtered.sort((a, b) => {
+/* --------------------------------------------------------  
+   แสดงรายการด้านล่าง  
+   ส่วนค้นหาด้านบนยังอยู่เหมือนเดิม  
+-------------------------------------------------------- */  
 
-      const dateA =
-        getMovementTime(
-          a.created_at
-        );
+results.innerHTML =  
+  filtered  
+    .map(movementRow)  
+    .join('');  
 
-      const dateB =
-        getMovementTime(
-          b.created_at
-        );
+console.log(  
+  `แสดงประวัติ ${filtered.length} รายการ`  
+);
 
-      return dateB - dateA;
-    });
+} catch (error) {
 
-    /* --------------------------------------------------------
-       สรุป
-       -------------------------------------------------------- */
+console.error(  
+  'loadHistory error:',  
+  error  
+);  
 
-    updateSummary(
-      filtered
-    );
+updateSummary([]);  
 
-    /* --------------------------------------------------------
-       ไม่มีรายการ
-       -------------------------------------------------------- */
+showError(error);
 
-    if (!filtered.length) {
-      showEmpty();
-      return;
-    }
-
-    /* --------------------------------------------------------
-       แสดงรายการ
-       -------------------------------------------------------- */
-
-    results.innerHTML =
-      filtered
-        .map(movementRow)
-        .join('');
-
-    console.log(
-      `แสดงประวัติ ${filtered.length} รายการ`
-    );
-
-  } catch (error) {
-
-    console.error(
-      'loadHistory error:',
-      error
-    );
-
-    updateSummary([]);
-
-    showError(error);
-  }
+}
 }
 
 /* ============================================================
-   ค้นหาเมื่อเปลี่ยนวันที่
-   ============================================================ */
+ค้นหาอัตโนมัติเมื่อเลือกวันที่ครบ
+============================================================ */
 
 function autoSearchByDate() {
+alert('AUTO SEARCH ทำงานแล้ว');
 
-  const start =
-    $('#startDate')?.value;
+const start = $('#startDate')?.value;
+const end = $('#endDate')?.value;
 
-  const end =
-    $('#endDate')?.value;
+console.log('วันที่เปลี่ยน:', start, end);
 
-  console.log(
-    'วันที่เปลี่ยน:',
-    start,
-    end
-  );
+// ต้องเลือกครบทั้ง 2 วัน
+if (!start || !end) {
+return;
+}
 
-  /*
-   * ยังเลือกไม่ครบ 2 ช่อง
-   * ไม่ต้องค้นหา
-   */
+// วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด
+if (start > end) {
+alert('วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด');
+return;
+}
 
-  if (!start || !end) {
-    return;
-  }
+loadHistory()
+.then(() => {
+alert('โหลดเสร็จแล้ว กำลังพิมพ์');
 
-  /*
-   * วันที่ผิด
-   */
+setTimeout(() => {  
+    window.print();  
+  }, 500);  
+})  
+.catch((error) => {  
+  console.error(  
+    'โหลดประวัติก่อนพิมพ์ไม่สำเร็จ:',  
+    error  
+  );  
+});
 
-  if (start > end) {
-
-    const results =
-      $('#historyResults');
-
-    if (results) {
-      results.innerHTML = `
-        <div
-          class="history-empty"
-          style="color:var(--danger,#dc2626)"
-        >
-          วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด
-        </div>
-      `;
-    }
-
-    updateSummary([]);
-
-    return;
-  }
-
-  /*
-   * ค้นหาอัตโนมัติ
-   */
-
-  loadHistory();
 }
 
 /* ============================================================
-   เลือกประเภท
-   ============================================================ */
+เลือกประเภท
+============================================================ */
 
 function selectHistoryType(button) {
 
-  $$('#historyTypes .chip')
-    .forEach((chip) => {
-      chip.classList.remove(
-        'is-active'
-      );
-    });
+$$('#historyTypes .chip')
+.forEach((chip) => {
+chip.classList.remove(
+'is-active'
+);
+});
 
-  button.classList.add(
-    'is-active'
-  );
+button.classList.add(
+'is-active'
+);
 
-  loadHistory();
+/* ค้นหาใหม่ทันที */
+loadHistory();
 }
 
 /* ============================================================
-   ค้นหาข้อความ
-   ============================================================ */
+ค้นหาข้อความ
+============================================================ */
 
 let searchTimer = null;
 
 function searchByText() {
 
-  clearTimeout(
-    searchTimer
-  );
+clearTimeout(
+searchTimer
+);
 
-  searchTimer =
-    setTimeout(() => {
-      loadHistory();
-    }, 300);
+searchTimer =
+setTimeout(
+() => {
+loadHistory();
+},
+300
+);
 }
 
 /* ============================================================
-   ล้างการค้นหา
-   ============================================================ */
+ล้างการค้นหา
+============================================================ */
 
 function clearHistorySearch() {
 
-  const start =
-    $('#startDate');
+const start =
+$('#startDate');
 
-  const end =
-    $('#endDate');
+const end =
+$('#endDate');
 
-  const search =
-    $('#searchInput');
+const search =
+$('#searchInput');
 
-  if (search) {
-    search.value = '';
-  }
+if (search) {
+search.value = '';
+}
 
-  if (start) {
-    start.value =
-      getDefaultStartDate();
-  }
+if (start) {
+start.value =
+getDefaultStartDate();
+}
 
-  if (end) {
-    end.value =
-      getDefaultEndDate();
-  }
+if (end) {
+end.value =
+getDefaultEndDate();
+}
 
-  $$('#historyTypes .chip')
-    .forEach((chip) => {
-      chip.classList.remove(
-        'is-active'
-      );
-    });
+$$('#historyTypes .chip')
+.forEach((chip) => {
+chip.classList.remove(
+'is-active'
+);
+});
 
-  const allChip =
-    $('#historyTypes .chip[data-type="all"]');
+const allChip =
+$('#historyTypes .chip[data-type="all"]');
 
-  if (allChip) {
-    allChip.classList.add(
-      'is-active'
-    );
-  }
+if (allChip) {
+allChip.classList.add(
+'is-active'
+);
+}
 
-  loadHistory();
+/* โหลดใหม่ */
+loadHistory();
 }
 
 /* ============================================================
-   พิมพ์
-   ============================================================ */
+พิมพ์
+============================================================ */
 
 function printHistory() {
-  window.print();
+window.print();
 }
 
 /* ============================================================
-   กลับ
-   ============================================================ */
+กลับ
+============================================================ */
 
 function goBack() {
 
-  if (
-    document.referrer &&
-    document.referrer.includes(
-      window.location.host
-    )
-  ) {
-    history.back();
-    return;
-  }
+if (
+document.referrer &&
+document.referrer.includes(
+window.location.host
+)
+) {
+history.back();
+return;
+}
 
-  window.location.href = '/';
+window.location.href =
+'/';
 }
 
 /* ============================================================
-   เริ่มต้น
-   ============================================================ */
+เริ่มต้นหน้า
+============================================================ */
 
 document.addEventListener(
-  'DOMContentLoaded',
-  () => {
+'DOMContentLoaded',
+() => {
 
-    console.log(
-      'History page เริ่มทำงาน'
-    );
+console.log(  
+  'History page เริ่มทำงาน'  
+);  
 
-    /* --------------------------------------------------------
-       ตั้งวันที่เริ่มต้น
-       -------------------------------------------------------- */
+/* --------------------------------------------------------  
+   ตั้งวันที่เริ่มต้น / สิ้นสุด  
+-------------------------------------------------------- */  
 
-    const start =
-      $('#startDate');
+const start =  
+  $('#startDate');  
 
-    const end =
-      $('#endDate');
+const end =  
+  $('#endDate');  
 
-    if (
-      start &&
-      !start.value
-    ) {
-      start.value =
-        getDefaultStartDate();
-    }
+if (  
+  start &&  
+  !start.value  
+) {  
+  start.value =  
+    getDefaultStartDate();  
+}  
 
-    /* --------------------------------------------------------
-       ตั้งวันที่สิ้นสุด
-       -------------------------------------------------------- */
+if (  
+  end &&  
+  !end.value  
+) {  
+  end.value =  
+    getDefaultEndDate();  
+}  
 
-    if (
-      end &&
-      !end.value
-    ) {
-      end.value =
-        getDefaultEndDate();
-    }
+/* --------------------------------------------------------  
+   เลือกวันที่เริ่มต้น  
+-------------------------------------------------------- */  
 
-    /* --------------------------------------------------------
-       เปลี่ยนวันที่
-       ค้นหาอัตโนมัติ
-       -------------------------------------------------------- */
+start?.addEventListener('change', () => {
 
-    start?.addEventListener(
-      'change',
-      autoSearchByDate
-    );
+alert('วันที่เริ่มต้นเปลี่ยน');
+autoSearchByDate();
+});
 
-    end?.addEventListener(
-      'change',
-      autoSearchByDate
-    );
+end?.addEventListener('change', () => {
+alert('วันที่สิ้นสุดเปลี่ยน');
+autoSearchByDate();
+});
 
-    /* --------------------------------------------------------
-       ค้นหาสินค้า / SKU / คลัง / ผู้ทำรายการ
-       -------------------------------------------------------- */
+/* --------------------------------------------------------  
+   เลือกวันที่สิ้นสุด  
+-------------------------------------------------------- */  
 
-    $('#searchInput')
-      ?.addEventListener(
-        'input',
-        searchByText
-      );
+end?.addEventListener(  
+  'change',  
+  autoSearchByDate  
+);  
 
-    /* --------------------------------------------------------
-       ปุ่มประเภท
-       -------------------------------------------------------- */
+/* --------------------------------------------------------  
+   ค้นหาชื่อ / SKU / คลัง / ผู้ทำรายการ  
+   ค้นหาอัตโนมัติหลังหยุดพิมพ์ 300ms  
+-------------------------------------------------------- */  
 
-    $$('#historyTypes .chip')
-      .forEach((button) => {
+$('#searchInput')  
+  ?.addEventListener(  
+    'input',  
+    searchByText  
+  );  
 
-        button.addEventListener(
-          'click',
-          () => {
-            selectHistoryType(
-              button
-            );
-          }
-        );
+/* --------------------------------------------------------  
+   ปุ่มประเภท  
+-------------------------------------------------------- */  
 
-      });
+$$('#historyTypes .chip')  
+  .forEach((button) => {  
 
-    /* --------------------------------------------------------
-       ล้างการค้นหา
-       -------------------------------------------------------- */
+    button.addEventListener(  
+      'click',  
+      () => {  
+        selectHistoryType(  
+          button  
+        );  
+      }  
+    );  
 
-    $('#clearBtn')
-      ?.addEventListener(
-        'click',
-        clearHistorySearch
-      );
+  });  
 
-    /* --------------------------------------------------------
-       พิมพ์
-       -------------------------------------------------------- */
+/* --------------------------------------------------------  
+   ล้างการค้นหา  
+-------------------------------------------------------- */  
 
-    $('#printBtn')
-      ?.addEventListener(
-        'click',
-        printHistory
-      );
+$('#clearBtn')  
+  ?.addEventListener(  
+    'click',  
+    clearHistorySearch  
+  );  
 
-    /* --------------------------------------------------------
-       กลับ
-       -------------------------------------------------------- */
+/* --------------------------------------------------------  
+   พิมพ์  
+-------------------------------------------------------- */  
 
-    $('#backBtn')
-      ?.addEventListener(
-        'click',
-        goBack
-      );
+$('#printBtn')  
+  ?.addEventListener(  
+    'click',  
+    printHistory  
+  );  
 
-    /* --------------------------------------------------------
-       โหลดครั้งแรก
-       -------------------------------------------------------- */
+/* --------------------------------------------------------  
+   กลับ  
+-------------------------------------------------------- */  
 
-    loadHistory();
+$('#backBtn')  
+  ?.addEventListener(  
+    'click',  
+    goBack  
+  );  
 
-  }
+/* --------------------------------------------------------  
+   โหลดข้อมูลครั้งแรก  
+   ใช้วันที่เดือนปัจจุบัน  
+-------------------------------------------------------- */  
+
+loadHistory();
+
+}
 );
