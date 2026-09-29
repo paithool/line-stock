@@ -1072,7 +1072,9 @@ document.addEventListener('click', (e) => {
     $$('#statusChips .chip').forEach((c) => c.classList.toggle('is-active', c === chip));
     return loadProducts().then(renderProducts);
   }
-
+  if (e.target.closest('#historySearchBtn')) {
+    return renderHistory();
+  }
   const hChip = e.target.closest('#historyChips .chip');
   if (hChip) {
     state.historyType = hChip.dataset.type;
