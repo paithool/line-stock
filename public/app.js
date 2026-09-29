@@ -347,6 +347,7 @@ const end =
 const rows = await api(
   `/movements?startDate=${start}&endDate=${end}&limit=100`
 );
+   console.log('HISTORY ROWS:', rows);
 
 // ----------------------------------------------------------
 // กรองประเภทประวัติ
