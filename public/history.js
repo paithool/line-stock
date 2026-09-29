@@ -742,13 +742,10 @@ async function loadHistory() {
 /* ============================================================
    ค้นหาอัตโนมัติเมื่อเลือกวันที่ครบ
    ============================================================ */
+
 function autoSearchByDate() {
   alert('AUTO SEARCH ทำงานแล้ว');
 
-  const start = $('#startDate')?.value;
-  const end = $('#endDate')?.value;
-   
-function autoSearchByDate() {
   const start = $('#startDate')?.value;
   const end = $('#endDate')?.value;
 
@@ -765,11 +762,21 @@ function autoSearchByDate() {
     return;
   }
 
-  loadHistory().then(() => {
-  alert('โหลดเสร็จแล้ว กำลังพิมพ์');
-  window.print();
-});
+  loadHistory()
+    .then(() => {
+      alert('โหลดเสร็จแล้ว กำลังพิมพ์');
 
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    })
+    .catch((error) => {
+      console.error(
+        'โหลดประวัติก่อนพิมพ์ไม่สำเร็จ:',
+        error
+      );
+    });
+}
 
 /* ============================================================
    เลือกประเภท
