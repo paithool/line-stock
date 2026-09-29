@@ -314,35 +314,40 @@ async function renderHistory() {
 
   try {
     const startInput = $('#historyStartDate');
-    const endInput = $('#historyEndDate');
+const endInput = $('#historyEndDate');
 
-    // ถ้ายังไม่ได้เลือกวันที่ ให้ใช้เดือนปัจจุบัน
-    const now = new Date();
+const now = new Date();
 
-    const pad = (n) => String(n).padStart(2, '0');
+const defaultStart = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  1
+);
 
-    const firstDay =
-      `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+const defaultEnd = new Date(
+  now.getFullYear(),
+  now.getMonth() + 1,
+  0
+);
 
-    const lastDayDate =
-      new Date(now.getFullYear(), now.getMonth() + 1, 0);
+const pad = (n) => String(n).padStart(2, '0');
 
-    const lastDay =
-      `${lastDayDate.getFullYear()}-` +
-      `${pad(lastDayDate.getMonth() + 1)}-` +
-      `${pad(lastDayDate.getDate())}`;
+const formatDate = (date) =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
-    // ใส่ค่าเริ่มต้นในช่องวันที่
-    if (startInput && !startInput.value) {
-      startInput.value = firstDay;
-    }
+if (startInput && !startInput.value) {
+  startInput.value = formatDate(defaultStart);
+}
 
-    if (endInput && !endInput.value) {
-      endInput.value = lastDay;
-    }
+if (endInput && !endInput.value) {
+  endInput.value = formatDate(defaultEnd);
+}
 
-    const startDate = startInput?.value || firstDay;
-    const endDate = endInput?.value || lastDay;
+const startDate =
+  startInput?.value || formatDate(defaultStart);
+
+const endDate =
+  endInput?.value || formatDate(defaultEnd);
 
     console.log(
       'HISTORY SEARCH:',
