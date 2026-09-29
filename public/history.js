@@ -742,7 +742,12 @@ async function loadHistory() {
 /* ============================================================
    ค้นหาอัตโนมัติเมื่อเลือกวันที่ครบ
    ============================================================ */
+function autoSearchByDate() {
+  alert('AUTO SEARCH ทำงานแล้ว');
 
+  const start = $('#startDate')?.value;
+  const end = $('#endDate')?.value;
+   
 function autoSearchByDate() {
   const start = $('#startDate')?.value;
   const end = $('#endDate')?.value;
