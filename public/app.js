@@ -302,9 +302,6 @@ function renderSettingsLocations(byLocation = []) {
 }
 
 /* ------------------------------------------------------------ ประวัติ */
-
-
-
 async function renderHistory() {
   const list = $('#historyList');
 
@@ -314,57 +311,54 @@ async function renderHistory() {
 
   try {
     const startInput = $('#historyStartDate');
-const endInput = $('#historyEndDate');
+    const endInput = $('#historyEndDate');
 
-const now = new Date();
+    const now = new Date();
 
-const defaultStart = new Date(
-  now.getFullYear(),
-  now.getMonth(),
-  1
-);
+    const pad = (n) => String(n).padStart(2, '0');
 
-const defaultEnd = new Date(
-  now.getFullYear(),
-  now.getMonth() + 1,
-  0
-);
-
-const pad = (n) => String(n).padStart(2, '0');
-
-const formatDate = (date) =>
-  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-
-if (startInput && !startInput.value) {
-  startInput.value = formatDate(defaultStart);
-}
-
-if (endInput && !endInput.value) {
-  endInput.value = formatDate(defaultEnd);
-}
-
-const startDate =
-  startInput?.value || formatDate(defaultStart);
-
-const endDate =
-  endInput?.value || formatDate(defaultEnd);
-
-    
+    const formatDate = (date) =>
+      `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
     // ----------------------------------------------------------
-    // เรียก API /history
+    // ค่าเริ่มต้น = วันที่ 1 ถึงวันสุดท้ายของเดือนปัจจุบัน
+    // ----------------------------------------------------------
+
+    const defaultStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+    const defaultEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0
+    );
+
+    if (startInput && !startInput.value) {
+      startInput.value = formatDate(defaultStart);
+    }
+
+    if (endInput && !endInput.value) {
+      endInput.value = formatDate(defaultEnd);
+    }
+
+    const startDate =
+      startInput?.value || formatDate(defaultStart);
+
+    const endDate =
+      endInput?.value || formatDate(defaultEnd);
+
+    // ----------------------------------------------------------
+    // เรียกข้อมูลตามวันที่ทันที
     // ----------------------------------------------------------
 
     const rows = await api(
-  `/movements?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&limit=100`
-);
+      `/movements?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&limit=500`
+    );
 
     console.log('HISTORY ROWS:', rows);
-
-    // ----------------------------------------------------------
-    // รองรับทั้งกรณี API ส่ง array ตรง ๆ
-    // และกรณีส่ง { history: [...] }
-    // ----------------------------------------------------------
 
     const movements =
       Array.isArray(rows)
@@ -388,12 +382,10 @@ const endDate =
               r.type === 'receive' &&
               r.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
 
-            // เพิ่มเข้า
             if (state.historyType === 'initial') {
               return isInitialAdd;
             }
 
-            // รับเข้า
             if (state.historyType === 'receive') {
               return (
                 r.type === 'receive' &&
@@ -401,7 +393,6 @@ const endDate =
               );
             }
 
-            // ย้ายคลัง
             if (state.historyType === 'transfer') {
               return (
                 r.type === 'transfer_in' ||
@@ -409,19 +400,32 @@ const endDate =
               );
             }
 
-            // ประเภทอื่น
             return r.type === state.historyType;
           });
 
     // ----------------------------------------------------------
-    // แสดงผล
+    // แสดงจำนวนรายการ
+    // ----------------------------------------------------------
+
+    const countEl = $('#historyCount');
+
+    if (countEl) {
+      countEl.textContent =
+        `${filtered.length.toLocaleString('th-TH')} รายการ`;
+    }
+
+    // ----------------------------------------------------------
+    // แสดงรายการ
     // ----------------------------------------------------------
 
     if (filtered.length > 0) {
+
       list.innerHTML = filtered
         .map(movementRow)
         .join('');
+
     } else {
+
       list.innerHTML = `
         <div class="empty">
           ไม่มีรายการในช่วงวันที่
@@ -443,6 +447,11 @@ const endDate =
     `;
   }
 }
+
+
+
+    
+      
 
 
 /* -------------------------------------------------------- bottom sheet */
