@@ -760,25 +760,10 @@ function autoSearchByDate() {
     return;
   }
 
-  // โหลดข้อมูลก่อน
   loadHistory().then(() => {
-
-    console.log('โหลดประวัติเสร็จแล้ว → กำลังเปิด Print Preview');
-
-    // รอให้ DOM แสดงรายการเสร็จ
-    setTimeout(() => {
-      window.print();
-    }, 500);
-
-  }).catch((error) => {
-
-    console.error(
-      'ไม่สามารถโหลดประวัติก่อนพิมพ์:',
-      error
-    );
-
-  });
-}
+  alert('โหลดเสร็จแล้ว กำลังพิมพ์');
+  window.print();
+});
 
 
 /* ============================================================
