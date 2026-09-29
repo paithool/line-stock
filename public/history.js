@@ -1,66 +1,73 @@
 /* ============================================================
    Stock — History Page
+   history.html compatible version
    ============================================================ */
 
 const API_BASE = '/api';
 
-/* ------------------------------------------------------------
-   Helpers
------------------------------------------------------------- */
+/* ============================================================
+   HELPERS
+   ============================================================ */
 
-const $ = (sel, root = document) =>
-  root.querySelector(sel);
+const $ = (selector, root = document) =>
+  root.querySelector(selector);
 
-const $$ = (sel, root = document) =>
-  [...root.querySelectorAll(sel)];
+const $$ = (selector, root = document) =>
+  [...root.querySelectorAll(selector)];
 
-const esc = (s) =>
-  String(s ?? '').replace(
+function esc(value) {
+  return String(value ?? '').replace(
     /[&<>"']/g,
-    (c) => ({
+    (char) => ({
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
       "'": '&#39;',
-    })[c]
+    })[char]
   );
+}
 
-const fmt = (n) => {
-  const v =
-    Math.round((Number(n) || 0) * 1000) / 1000;
+function fmt(value) {
+  const number =
+    Math.round((Number(value) || 0) * 1000) / 1000;
 
-  return v.toLocaleString('th-TH', {
+  return number.toLocaleString('th-TH', {
     maximumFractionDigits: 3,
   });
-};
+}
 
-/* ------------------------------------------------------------
+/* ============================================================
    API
------------------------------------------------------------- */
+   ============================================================ */
 
 async function api(path, options = {}) {
+
   const headers = {
     'content-type': 'application/json',
     ...(options.headers || {}),
   };
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-    credentials: 'same-origin',
-  });
+  const response = await fetch(
+    `${API_BASE}${path}`,
+    {
+      ...options,
+      headers,
+      credentials: 'same-origin',
+    }
+  );
 
   const data =
-    await res.json().catch(() => ({}));
+    await response.json().catch(() => ({}));
 
-  if (!res.ok) {
+  if (!response.ok) {
+
     const error = new Error(
       data.error ||
-      `เกิดข้อผิดพลาด (${res.status})`
+      `เกิดข้อผิดพลาด (${response.status})`
     );
 
-    error.status = res.status;
+    error.status = response.status;
 
     throw error;
   }
@@ -68,67 +75,50 @@ async function api(path, options = {}) {
   return data;
 }
 
-/* ------------------------------------------------------------
-   วันที่ / เวลา
------------------------------------------------------------- */
+/* ============================================================
+   DATE
+   ============================================================ */
 
-function formatDateTime(sqlDate) {
-  if (!sqlDate) return '-';
+function formatDateTime(value) {
 
-  const d = new Date(
-    String(sqlDate).replace(' ', 'T') + 'Z'
-  );
-
-  if (Number.isNaN(d.getTime())) {
-    return sqlDate;
+  if (!value) {
+    return '-';
   }
 
-  return d.toLocaleString('th-TH', {
-    timeZone: 'Asia/Bangkok',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const raw =
+    String(value);
+
+  const date =
+    new Date(
+      raw.includes('T')
+        ? raw
+        : raw.replace(' ', 'T') + 'Z'
+    );
+
+  if (Number.isNaN(date.getTime())) {
+    return raw;
+  }
+
+  return date.toLocaleString(
+    'th-TH',
+    {
+      timeZone: 'Asia/Bangkok',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }
+  );
 }
 
-function getDefaultDates() {
-  const now = new Date();
-
-  const firstDay = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1
-  );
-
-  const lastDay = new Date(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    0
-  );
-
-  const pad = (n) =>
-    String(n).padStart(2, '0');
-
-  const start =
-    `${firstDay.getFullYear()}-` +
-    `${pad(firstDay.getMonth() + 1)}-` +
-    `${pad(firstDay.getDate())}`;
-
-  const end =
-    `${lastDay.getFullYear()}-` +
-    `${pad(lastDay.getMonth() + 1)}-` +
-    `${pad(lastDay.getDate())}`;
-
-  return { start, end };
-}
-
-/* ------------------------------------------------------------
-   ประเภทการเคลื่อนไหว
------------------------------------------------------------- */
+/* ============================================================
+   MOVE TYPE
+   ============================================================ */
 
 const MOVE_META = {
+
   issue: {
     label: 'เบิกออก',
     icon: '📤',
@@ -166,39 +156,61 @@ const MOVE_META = {
   },
 };
 
-/* ------------------------------------------------------------
-   แสดงรายการ 1 รายการ
------------------------------------------------------------- */
+/* ============================================================
+   INITIAL ADD
+   ============================================================ */
 
-function movementRow(m) {
+function isInitialAdd(row) {
 
-  const isInitialAdd =
-    m.type === 'receive' &&
-    m.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
+  return (
+    row.type === 'receive' &&
+    row.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า'
+  );
+}
 
-  const meta = isInitialAdd
-    ? {
-        label: 'เพิ่มเข้า',
-        icon: '🆕',
-        cls: 'receive',
-      }
-    : (
-        MOVE_META[m.type] || {
-          label: m.type || '-',
-          icon: '•',
-          cls: '',
-        }
-      );
+/* ============================================================
+   GET TYPE META
+   ============================================================ */
+
+function getMoveMeta(row) {
+
+  if (isInitialAdd(row)) {
+
+    return {
+      label: 'เพิ่มเข้า',
+      icon: '🆕',
+      cls: 'receive',
+    };
+  }
+
+  return (
+    MOVE_META[row.type] || {
+      label: row.type || '-',
+      icon: '•',
+      cls: '',
+    }
+  );
+}
+
+/* ============================================================
+   MOVEMENT ROW
+   ============================================================ */
+
+function movementRow(row) {
+
+  const meta =
+    getMoveMeta(row);
 
   const delta =
-    Number(m.delta) || 0;
+    Number(row.delta) || 0;
 
-  const positive = delta > 0;
+  const positive =
+    delta > 0;
 
-  const deltaColor =
+  const amountColor =
     positive
-      ? 'var(--receive)'
-      : 'var(--issue)';
+      ? 'var(--receive, #16a34a)'
+      : 'var(--issue, #dc2626)';
 
   return `
     <div class="history-row">
@@ -210,51 +222,67 @@ function movementRow(m) {
       <div>
 
         <div class="history-row__name">
-          ${esc(m.product_name || '-')}
+          ${esc(
+            row.product_name ||
+            row.productName ||
+            '-'
+          )}
         </div>
 
         <div class="history-row__meta">
 
           ${esc(meta.label)}
 
-          · ${esc(m.location_name || '-')}
+          ·
 
-          · ${formatDateTime(m.created_at)}
+          ${esc(
+            row.location_name ||
+            row.locationName ||
+            '-'
+          )}
+
+          ·
+
+          ${formatDateTime(
+            row.created_at ||
+            row.createdAt
+          )}
 
           ${
-            m.actor_name
-              ? ` · ${esc(m.actor_name)}`
+            row.actor_name
+              ? ` · ${esc(row.actor_name)}`
               : ''
           }
 
           ${
-            m.note && !isInitialAdd
-              ? ` · ${esc(m.note)}`
+            row.note && !isInitialAdd(row)
+              ? ` · ${esc(row.note)}`
               : ''
           }
 
         </div>
 
         ${
-          m.ref || m.sku
+          row.ref ||
+          row.sku
             ? `
               <div class="history-row__meta">
 
                 ${
-                  m.ref
-                    ? `เลขที่: ${esc(m.ref)}`
+                  row.ref
+                    ? `เลขที่: ${esc(row.ref)}`
                     : ''
                 }
 
                 ${
-                  m.ref && m.sku
+                  row.ref && row.sku
                     ? ' · '
                     : ''
                 }
 
                 ${
-                  m.sku
-                    ? `SKU: ${esc(m.sku)}`
+                  row.sku
+                    ? `SKU: ${esc(row.sku)}`
                     : ''
                 }
 
@@ -269,7 +297,7 @@ function movementRow(m) {
 
         <div
           class="history-row__delta"
-          style="color:${deltaColor}"
+          style="color:${amountColor}"
         >
           ${positive ? '+' : ''}
           ${fmt(delta)}
@@ -277,11 +305,17 @@ function movementRow(m) {
 
         <div class="history-row__balance">
 
-          เหลือ ${fmt(m.balance_after)}
+          เหลือ
+
+          ${fmt(
+            row.balance_after ??
+            row.balanceAfter ??
+            0
+          )}
 
           ${
-            m.unit
-              ? ` ${esc(m.unit)}`
+            row.unit
+              ? ` ${esc(row.unit)}`
               : ''
           }
 
@@ -293,16 +327,77 @@ function movementRow(m) {
   `;
 }
 
-/* ------------------------------------------------------------
-   ตรวจประเภท
------------------------------------------------------------- */
+/* ============================================================
+   DEFAULT DATE
+   ============================================================ */
 
-function isInitialAdd(row) {
-  return (
-    row.type === 'receive' &&
-    row.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า'
-  );
+function getDefaultDates() {
+
+  const now =
+    new Date();
+
+  const firstDay =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+  const lastDay =
+    new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0
+    );
+
+  const pad =
+    (number) =>
+      String(number).padStart(2, '0');
+
+  return {
+
+    start:
+      `${firstDay.getFullYear()}-` +
+      `${pad(firstDay.getMonth() + 1)}-` +
+      `${pad(firstDay.getDate())}`,
+
+    end:
+      `${lastDay.getFullYear()}-` +
+      `${pad(lastDay.getMonth() + 1)}-` +
+      `${pad(lastDay.getDate())}`,
+
+  };
 }
+
+/* ============================================================
+   GET SEARCH VALUES
+   ============================================================ */
+
+function getSearchValues() {
+
+  return {
+
+    startDate:
+      $('#startDate')?.value || '',
+
+    endDate:
+      $('#endDate')?.value || '',
+
+    search:
+      $('#searchInput')?.value
+        .trim()
+        .toLowerCase() || '',
+
+    type:
+      $('.history-type-row .chip.is-active')
+        ?.dataset.type || 'all',
+
+  };
+}
+
+/* ============================================================
+   FILTER TYPE
+   ============================================================ */
 
 function filterByType(rows, type) {
 
@@ -310,132 +405,194 @@ function filterByType(rows, type) {
     return rows;
   }
 
-  if (type === 'initial') {
-    return rows.filter(isInitialAdd);
-  }
+  return rows.filter((row) => {
 
-  if (type === 'receive') {
-    return rows.filter(
-      (r) =>
-        r.type === 'receive' &&
-        !isInitialAdd(r)
-    );
-  }
+    const initial =
+      isInitialAdd(row);
 
-  if (type === 'transfer') {
-    return rows.filter(
-      (r) =>
-        r.type === 'transfer_in' ||
-        r.type === 'transfer_out'
-    );
-  }
+    if (type === 'initial') {
+      return initial;
+    }
 
-  return rows.filter(
-    (r) => r.type === type
-  );
+    if (type === 'receive') {
+
+      return (
+        row.type === 'receive' &&
+        !initial
+      );
+    }
+
+    if (type === 'transfer') {
+
+      return (
+        row.type === 'transfer_in' ||
+        row.type === 'transfer_out'
+      );
+    }
+
+    return row.type === type;
+  });
 }
 
-/* ------------------------------------------------------------
-   ค้นหาข้อความ
------------------------------------------------------------- */
+/* ============================================================
+   TEXT SEARCH
+   ============================================================ */
 
 function filterBySearch(rows, keyword) {
 
-  const q =
-    String(keyword || '')
-      .trim()
-      .toLowerCase();
-
-  if (!q) {
+  if (!keyword) {
     return rows;
   }
 
-  return rows.filter((r) => {
+  return rows.filter((row) => {
 
     const text = [
-      r.product_name,
-      r.sku,
-      r.location_name,
-      r.actor_name,
-      r.note,
-      r.ref,
-      r.type,
+
+      row.product_name,
+      row.productName,
+
+      row.sku,
+
+      row.location_name,
+      row.locationName,
+
+      row.actor_name,
+      row.actorName,
+
+      row.note,
+
+      row.ref,
+
+      row.type,
+
     ]
       .filter(Boolean)
       .join(' ')
       .toLowerCase();
 
-    return text.includes(q);
+    return text.includes(keyword);
   });
 }
 
-/* ------------------------------------------------------------
-   สรุปผล
------------------------------------------------------------- */
+/* ============================================================
+   SUMMARY
+   ============================================================ */
 
 function updateSummary(rows) {
 
-  const totalEl =
+  const totalCount =
     $('#totalCount');
 
-  const receiveEl =
+  const receiveCount =
     $('#receiveCount');
 
-  const issueEl =
+  const issueCount =
     $('#issueCount');
 
-  const countEl =
-    $('#historyCount');
+  if (totalCount) {
 
-  if (totalEl) {
-    totalEl.textContent =
+    totalCount.textContent =
       rows.length.toLocaleString('th-TH');
   }
 
-  let receiveCount = 0;
-  let issueCount = 0;
+  let receive =
+    0;
 
-  rows.forEach((r) => {
+  let issue =
+    0;
+
+  rows.forEach((row) => {
 
     const delta =
-      Number(r.delta) || 0;
+      Number(row.delta) || 0;
 
-    if (
-      r.type === 'receive' ||
-      r.type === 'transfer_in' ||
-      (r.type === 'receive' && isInitialAdd(r))
-    ) {
-      receiveCount += Math.abs(delta);
-    }
+    if (delta > 0) {
 
-    if (
-      r.type === 'issue' ||
-      r.type === 'transfer_out'
-    ) {
-      issueCount += Math.abs(delta);
+      receive +=
+        Math.abs(delta);
+
+    } else if (delta < 0) {
+
+      issue +=
+        Math.abs(delta);
     }
 
   });
 
-  if (receiveEl) {
-    receiveEl.textContent =
-      fmt(receiveCount);
+  if (receiveCount) {
+
+    receiveCount.textContent =
+      fmt(receive);
   }
 
-  if (issueEl) {
-    issueEl.textContent =
-      fmt(issueCount);
-  }
+  if (issueCount) {
 
-  if (countEl) {
-    countEl.textContent =
-      `${rows.length.toLocaleString('th-TH')} รายการ`;
+    issueCount.textContent =
+      fmt(issue);
   }
 }
 
-/* ------------------------------------------------------------
-   โหลดประวัติ
------------------------------------------------------------- */
+/* ============================================================
+   UPDATE COUNT
+   ============================================================ */
+
+function updateCount(count) {
+
+  const element =
+    $('#historyCount');
+
+  if (!element) {
+    return;
+  }
+
+  element.textContent =
+    `${count.toLocaleString('th-TH')} รายการ`;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+
+function renderHistory(rows) {
+
+  const list =
+    $('#historyResults');
+
+  if (!list) {
+    return;
+  }
+
+  if (!rows.length) {
+
+    list.innerHTML = `
+      <div class="history-empty">
+        ไม่มีรายการตามเงื่อนไขที่ค้นหา
+      </div>
+    `;
+
+    updateCount(0);
+    updateSummary([]);
+
+    return;
+  }
+
+  list.innerHTML =
+    rows
+      .map(movementRow)
+      .join('');
+
+  updateCount(
+    rows.length
+  );
+
+  updateSummary(
+    rows
+  );
+}
+
+/* ============================================================
+   LOAD HISTORY
+   ============================================================ */
 
 async function loadHistory() {
 
@@ -443,9 +600,6 @@ async function loadHistory() {
     $('#historyResults');
 
   if (!list) {
-    console.error(
-      'ไม่พบ #historyResults ใน history.html'
-    );
     return;
   }
 
@@ -457,60 +611,19 @@ async function loadHistory() {
 
   try {
 
+    const values =
+      getSearchValues();
+
     const defaults =
       getDefaultDates();
 
-    const startInput =
-      $('#startDate');
-
-    const endInput =
-      $('#endDate');
-
-    const searchInput =
-      $('#searchInput');
-
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
-
     const startDate =
-      startInput?.value ||
-      params.get('startDate') ||
+      values.startDate ||
       defaults.start;
 
     const endDate =
-      endInput?.value ||
-      params.get('endDate') ||
+      values.endDate ||
       defaults.end;
-
-    const keyword =
-      searchInput?.value ||
-      params.get('q') ||
-      '';
-
-    const activeChip =
-      $('#historyTypes .chip.is-active');
-
-    const type =
-      activeChip?.dataset.type ||
-      params.get('type') ||
-      'all';
-
-    if (startInput) {
-      startInput.value =
-        startDate;
-    }
-
-    if (endInput) {
-      endInput.value =
-        endDate;
-    }
-
-    if (searchInput) {
-      searchInput.value =
-        keyword;
-    }
 
     /* --------------------------------------------------------
        เรียก API
@@ -540,7 +653,10 @@ async function loadHistory() {
     -------------------------------------------------------- */
 
     let filtered =
-      filterByType(rows, type);
+      filterByType(
+        rows,
+        values.type
+      );
 
     /* --------------------------------------------------------
        ค้นหาข้อความ
@@ -549,110 +665,93 @@ async function loadHistory() {
     filtered =
       filterBySearch(
         filtered,
-        keyword
+        values.search
       );
 
     /* --------------------------------------------------------
-       สรุป
+       แสดงผล
     -------------------------------------------------------- */
 
-    updateSummary(filtered);
-
-    /* --------------------------------------------------------
-       แสดงรายการ
-    -------------------------------------------------------- */
-
-    if (!filtered.length) {
-
-      list.innerHTML = `
-        <div class="history-empty">
-          ไม่มีรายการที่ตรงกับเงื่อนไข
-        </div>
-      `;
-
-      return;
-    }
-
-    list.innerHTML =
+    renderHistory(
       filtered
-        .map(movementRow)
-        .join('');
+    );
 
-  } catch (err) {
+  } catch (error) {
 
     console.error(
       'loadHistory error:',
-      err
+      error
     );
 
     list.innerHTML = `
       <div
         class="history-empty"
-        style="color:var(--danger)"
+        style="color:#dc2626"
       >
+
         โหลดประวัติไม่สำเร็จ
+
         <br>
+
         <small>
-          ${esc(err.message)}
+          ${esc(error.message)}
         </small>
+
       </div>
     `;
 
+    updateCount(0);
     updateSummary([]);
   }
 }
 
-/* ------------------------------------------------------------
-   อัปเดต URL
------------------------------------------------------------- */
+/* ============================================================
+   SEARCH
+   ============================================================ */
 
-function updateUrl() {
+function searchHistory() {
+
+  const values =
+    getSearchValues();
 
   const params =
     new URLSearchParams();
 
-  const start =
-    $('#startDate')?.value;
+  if (values.startDate) {
 
-  const end =
-    $('#endDate')?.value;
-
-  const keyword =
-    $('#searchInput')?.value.trim();
-
-  const chip =
-    $('#historyTypes .chip.is-active');
-
-  const type =
-    chip?.dataset.type || 'all';
-
-  if (start) {
     params.set(
       'startDate',
-      start
+      values.startDate
     );
   }
 
-  if (end) {
+  if (values.endDate) {
+
     params.set(
       'endDate',
-      end
+      values.endDate
     );
   }
 
-  if (keyword) {
+  if (values.search) {
+
     params.set(
-      'q',
-      keyword
+      'search',
+      values.search
     );
   }
 
-  if (type !== 'all') {
+  if (values.type !== 'all') {
+
     params.set(
       'type',
-      type
+      values.type
     );
   }
+
+  /* ----------------------------------------------------------
+     เปลี่ยน URL โดยไม่รีโหลดหน้า
+     ---------------------------------------------------------- */
 
   const query =
     params.toString();
@@ -664,24 +763,19 @@ function updateUrl() {
       ? `${location.pathname}?${query}`
       : location.pathname
   );
-}
 
-/* ------------------------------------------------------------
-   ค้นหา
------------------------------------------------------------- */
-
-function searchHistory() {
-
-  updateUrl();
+  /* ----------------------------------------------------------
+     โหลดรายการใหม่
+     ---------------------------------------------------------- */
 
   loadHistory();
 }
 
-/* ------------------------------------------------------------
-   ล้างการค้นหา
------------------------------------------------------------- */
+/* ============================================================
+   CLEAR SEARCH
+   ============================================================ */
 
-function clearHistorySearch() {
+function clearSearch() {
 
   const defaults =
     getDefaultDates();
@@ -706,78 +800,259 @@ function clearHistorySearch() {
   }
 
   if (search) {
-    search.value = '';
+    search.value =
+      '';
   }
 
-  $$('#historyTypes .chip')
+  /* ----------------------------------------------------------
+     กลับไป "ทั้งหมด"
+     ---------------------------------------------------------- */
+
+  $$('.history-type-row .chip')
     .forEach((chip) => {
 
-      chip.classList.toggle(
-        'is-active',
-        chip.dataset.type === 'all'
+      chip.classList.remove(
+        'is-active'
+      );
+
+      chip.setAttribute(
+        'aria-pressed',
+        'false'
       );
 
     });
 
-  updateUrl();
+  const allChip =
+    $('.history-type-row .chip[data-type="all"]');
+
+  if (allChip) {
+
+    allChip.classList.add(
+      'is-active'
+    );
+
+    allChip.setAttribute(
+      'aria-pressed',
+      'true'
+    );
+  }
+
+  window.history.replaceState(
+    {},
+    '',
+    location.pathname
+  );
 
   loadHistory();
 }
 
-/* ------------------------------------------------------------
-   เลือกประเภท
------------------------------------------------------------- */
+/* ============================================================
+   TYPE BUTTON
+   ============================================================ */
 
-function selectHistoryType(button) {
+function setupTypeButtons() {
 
-  $$('#historyTypes .chip')
-    .forEach((chip) => {
+  const chips =
+    $$('.history-type-row .chip');
 
-      chip.classList.toggle(
-        'is-active',
-        chip === button
-      );
+  chips.forEach((chip) => {
 
-    });
+    chip.setAttribute(
+      'aria-pressed',
+      chip.classList.contains('is-active')
+        ? 'true'
+        : 'false'
+    );
 
-  updateUrl();
+    chip.addEventListener(
+      'click',
+      () => {
 
-  loadHistory();
+        chips.forEach((item) => {
+
+          item.classList.remove(
+            'is-active'
+          );
+
+          item.setAttribute(
+            'aria-pressed',
+            'false'
+          );
+
+        });
+
+        chip.classList.add(
+          'is-active'
+        );
+
+        chip.setAttribute(
+          'aria-pressed',
+          'true'
+        );
+
+        searchHistory();
+
+      }
+    );
+
+  });
 }
 
-/* ------------------------------------------------------------
-   พิมพ์รายงาน
------------------------------------------------------------- */
+/* ============================================================
+   LOAD VALUES FROM URL
+   ============================================================ */
+
+function loadValuesFromURL() {
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const defaults =
+    getDefaultDates();
+
+  const start =
+    $('#startDate');
+
+  const end =
+    $('#endDate');
+
+  const search =
+    $('#searchInput');
+
+  if (start) {
+
+    start.value =
+      params.get('startDate') ||
+      defaults.start;
+  }
+
+  if (end) {
+
+    end.value =
+      params.get('endDate') ||
+      defaults.end;
+  }
+
+  if (search) {
+
+    search.value =
+      params.get('search') ||
+      '';
+  }
+
+  const type =
+    params.get('type') ||
+    'all';
+
+  const chips =
+    $$('.history-type-row .chip');
+
+  chips.forEach((chip) => {
+
+    const active =
+      chip.dataset.type === type;
+
+    chip.classList.toggle(
+      'is-active',
+      active
+    );
+
+    chip.setAttribute(
+      'aria-pressed',
+      active
+        ? 'true'
+        : 'false'
+    );
+
+  });
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
 
 function printHistory() {
 
   window.print();
-
 }
 
-/* ------------------------------------------------------------
-   กลับ Dashboard
------------------------------------------------------------- */
+/* ============================================================
+   BACK
+   ============================================================ */
 
 function goBack() {
 
-  if (document.referrer) {
+  if (
+    document.referrer &&
+    document.referrer.includes(
+      location.origin
+    )
+  ) {
+
     history.back();
+
     return;
   }
 
-  window.location.href = '/';
+  window.location.href =
+    '/';
 }
 
-/* ------------------------------------------------------------
-   Event
------------------------------------------------------------- */
+/* ============================================================
+   EVENTS
+   ============================================================ */
 
 document.addEventListener(
   'DOMContentLoaded',
   () => {
 
-    /* วันที่ */
+    /* --------------------------------------------------------
+       โหลดค่าจาก URL
+    -------------------------------------------------------- */
+
+    loadValuesFromURL();
+
+    /* --------------------------------------------------------
+       ประเภท
+    -------------------------------------------------------- */
+
+    setupTypeButtons();
+
+    /* --------------------------------------------------------
+       ปุ่มพิมพ์
+    -------------------------------------------------------- */
+
+    $('#printBtn')
+      ?.addEventListener(
+        'click',
+        printHistory
+      );
+
+    /* --------------------------------------------------------
+       ปุ่มล้าง
+    -------------------------------------------------------- */
+
+    $('#clearBtn')
+      ?.addEventListener(
+        'click',
+        clearSearch
+      );
+
+    /* --------------------------------------------------------
+       ปุ่มกลับ
+    -------------------------------------------------------- */
+
+    $('#backBtn')
+      ?.addEventListener(
+        'click',
+        goBack
+      );
+
+    /* --------------------------------------------------------
+       วันที่
+    -------------------------------------------------------- */
 
     $('#startDate')
       ?.addEventListener(
@@ -791,7 +1066,36 @@ document.addEventListener(
         searchHistory
       );
 
-    /* ค้นหา */
+    /* --------------------------------------------------------
+       ค้นหาข้อความ
+
+       กด Enter เพื่อค้นหา
+    -------------------------------------------------------- */
+
+    $('#searchInput')
+      ?.addEventListener(
+        'keydown',
+        (event) => {
+
+          if (
+            event.key === 'Enter'
+          ) {
+
+            event.preventDefault();
+
+            searchHistory();
+          }
+
+        }
+      );
+
+    /* --------------------------------------------------------
+       ค้นหาแบบพิมพ์
+
+       รอ 400ms แล้วค้นหา
+    -------------------------------------------------------- */
+
+    let searchTimer = null;
 
     $('#searchInput')
       ?.addEventListener(
@@ -799,58 +1103,20 @@ document.addEventListener(
         () => {
 
           clearTimeout(
-            window.historySearchTimer
+            searchTimer
           );
 
-          window.historySearchTimer =
+          searchTimer =
             setTimeout(
               searchHistory,
-              350
+              400
             );
 
         }
       );
 
-    /* ประเภท */
-
-    $$('#historyTypes .chip')
-      .forEach((button) => {
-
-        button.addEventListener(
-          'click',
-          () => {
-            selectHistoryType(button);
-          }
-        );
-
-      });
-
-    /* ล้าง */
-
-    $('#clearBtn')
-      ?.addEventListener(
-        'click',
-        clearHistorySearch
-      );
-
-    /* พิมพ์ */
-
-    $('#printBtn')
-      ?.addEventListener(
-        'click',
-        printHistory
-      );
-
-    /* กลับ */
-
-    $('#backBtn')
-      ?.addEventListener(
-        'click',
-        goBack
-      );
-
     /* --------------------------------------------------------
-       โหลดครั้งแรก
+       โหลดข้อมูลครั้งแรก
     -------------------------------------------------------- */
 
     loadHistory();
