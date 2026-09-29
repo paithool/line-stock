@@ -303,138 +303,146 @@ function renderSettingsLocations(byLocation = []) {
 
 /* ------------------------------------------------------------ ประวัติ */
 
+
+
 async function renderHistory() {
-const list = $('#historyList');
+  const list = $('#historyList');
 
-// แสดงสถานะกำลังโหลด
-list.innerHTML = '<div class="skeleton"></div>';
+  if (!list) return;
 
-try {
-// ----------------------------------------------------------
-// กำหนดช่วงวันที่
-// ----------------------------------------------------------
+  list.innerHTML = '<div class="skeleton"></div>';
 
-const now = new Date();
+  try {
+    const startInput = $('#historyStartDate');
+    const endInput = $('#historyEndDate');
 
-const startDate = new Date(
-  now.getFullYear(),
-  now.getMonth(),
-  1
-);
+    // ถ้ายังไม่ได้เลือกวันที่ ให้ใช้เดือนปัจจุบัน
+    const now = new Date();
 
-const endDate = new Date(
-  now.getFullYear(),
-  now.getMonth() + 1,
-  0
-);
+    const pad = (n) => String(n).padStart(2, '0');
 
-const pad = (number) => String(number).padStart(2, '0');
+    const firstDay =
+      `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
 
-const start =
-  `${startDate.getFullYear()}-` +
-  `${pad(startDate.getMonth() + 1)}-` +
-  `${pad(startDate.getDate())}`;
+    const lastDayDate =
+      new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-const end =
-  `${endDate.getFullYear()}-` +
-  `${pad(endDate.getMonth() + 1)}-` +
-  `${pad(endDate.getDate())}`;
+    const lastDay =
+      `${lastDayDate.getFullYear()}-` +
+      `${pad(lastDayDate.getMonth() + 1)}-` +
+      `${pad(lastDayDate.getDate())}`;
 
-// ----------------------------------------------------------
-// โหลดข้อมูลประวัติจาก API
-// ----------------------------------------------------------
+    // ใส่ค่าเริ่มต้นในช่องวันที่
+    if (startInput && !startInput.value) {
+      startInput.value = firstDay;
+    }
 
-const rows = await api(
-  `/movements?startDate=${start}&endDate=${end}&limit=100`
-);
-   console.log('HISTORY ROWS:', rows);
+    if (endInput && !endInput.value) {
+      endInput.value = lastDay;
+    }
 
-// ----------------------------------------------------------
-// กรองประเภทประวัติ
-// ----------------------------------------------------------
+    const startDate = startInput?.value || firstDay;
+    const endDate = endInput?.value || lastDay;
 
-const filtered =
-  state.historyType === 'all'
-    ? rows
-    : rows.filter((r) => {
+    console.log(
+      'HISTORY SEARCH:',
+      startDate,
+      endDate
+    );
 
-        // รายการเพิ่มสินค้าใหม่
-        const isInitialAdd =
-          r.type === 'receive' &&
-          r.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
+    // ----------------------------------------------------------
+    // เรียก API /history
+    // ----------------------------------------------------------
 
-        // --------------------------------------------------
-        // รับเข้า
-        // ไม่รวมรายการ "จำนวนเริ่มต้นตอนเพิ่มสินค้า"
-        // --------------------------------------------------
+    const rows = await api(
+      `/history?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
+    );
 
-        if (state.historyType === 'receive') {
-          return (
-            r.type === 'receive' &&
-            !isInitialAdd
-          );
-        }
+    console.log('HISTORY ROWS:', rows);
 
-        // --------------------------------------------------
-        // เพิ่มเข้า
-        // --------------------------------------------------
+    // ----------------------------------------------------------
+    // รองรับทั้งกรณี API ส่ง array ตรง ๆ
+    // และกรณีส่ง { history: [...] }
+    // ----------------------------------------------------------
 
-        if (state.historyType === 'initial') {
-          return isInitialAdd;
-        }
+    const movements =
+      Array.isArray(rows)
+        ? rows
+        : Array.isArray(rows.history)
+          ? rows.history
+          : Array.isArray(rows.data)
+            ? rows.data
+            : [];
 
-        // --------------------------------------------------
-        // ย้ายคลัง
-        // --------------------------------------------------
+    // ----------------------------------------------------------
+    // กรองประเภท
+    // ----------------------------------------------------------
 
-        if (state.historyType === 'transfer') {
-          return (
-            r.type === 'transfer_in' ||
-            r.type === 'transfer_out'
-          );
-        }
+    const filtered =
+      state.historyType === 'all'
+        ? movements
+        : movements.filter((r) => {
 
-        // --------------------------------------------------
-        // ประเภทอื่น ๆ
-        // --------------------------------------------------
+            const isInitialAdd =
+              r.type === 'receive' &&
+              r.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
 
-        return r.type === state.historyType;
-      });
+            // เพิ่มเข้า
+            if (state.historyType === 'initial') {
+              return isInitialAdd;
+            }
 
-// ----------------------------------------------------------
-// แสดงผล
-// ----------------------------------------------------------
+            // รับเข้า
+            if (state.historyType === 'receive') {
+              return (
+                r.type === 'receive' &&
+                !isInitialAdd
+              );
+            }
 
-if (filtered.length > 0) {
-  list.innerHTML = filtered
-    .map(movementRow)
-    .join('');
-} else {
-  list.innerHTML = `
-    <div class="empty">
-      ไม่มีรายการในช่วงวันที่นี้
-    </div>
-  `;
+            // ย้ายคลัง
+            if (state.historyType === 'transfer') {
+              return (
+                r.type === 'transfer_in' ||
+                r.type === 'transfer_out'
+              );
+            }
+
+            // ประเภทอื่น
+            return r.type === state.historyType;
+          });
+
+    // ----------------------------------------------------------
+    // แสดงผล
+    // ----------------------------------------------------------
+
+    if (filtered.length > 0) {
+      list.innerHTML = filtered
+        .map(movementRow)
+        .join('');
+    } else {
+      list.innerHTML = `
+        <div class="empty">
+          ไม่มีรายการในช่วงวันที่
+          ${esc(startDate)} ถึง ${esc(endDate)}
+        </div>
+      `;
+    }
+
+  } catch (err) {
+
+    console.error('renderHistory error:', err);
+
+    list.innerHTML = `
+      <div class="empty" style="color:var(--danger)">
+        โหลดประวัติไม่สำเร็จ
+        <br>
+        <small>${esc(err.message)}</small>
+      </div>
+    `;
+  }
 }
 
-} catch (err) {
-
-// ----------------------------------------------------------
-// กรณีโหลดข้อมูลไม่สำเร็จ
-// ----------------------------------------------------------
-
-console.error('renderHistory error:', err);
-
-list.innerHTML = `
-  <div class="empty" style="color:var(--danger)">
-    โหลดประวัติไม่สำเร็จ
-    <br>
-    <small>${esc(err.message)}</small>
-  </div>
-`;
-
-}
-}
 
 /* -------------------------------------------------------- bottom sheet */
 
