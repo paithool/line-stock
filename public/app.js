@@ -304,40 +304,135 @@ function renderSettingsLocations(byLocation = []) {
 /* ------------------------------------------------------------ ประวัติ */
 
 async function renderHistory() {
-  const list = $('#historyList');
-  list.innerHTML = '<div class="skeleton"></div>';
+const list = $('#historyList');
 
-  const rows = await api('/movements?limit=100');
+// แสดงสถานะกำลังโหลด
+list.innerHTML = '<div class="skeleton"></div>';
 
-  const filtered =
-    state.historyType === 'all'
-      ? rows
-      : rows.filter((r) => {
-          const isInitialAdd =
+try {
+// ----------------------------------------------------------
+// กำหนดช่วงวันที่
+// ----------------------------------------------------------
+
+const now = new Date();
+
+const startDate = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  1
+);
+
+const endDate = new Date(
+  now.getFullYear(),
+  now.getMonth() + 1,
+  0
+);
+
+const pad = (number) => String(number).padStart(2, '0');
+
+const start =
+  `${startDate.getFullYear()}-` +
+  `${pad(startDate.getMonth() + 1)}-` +
+  `${pad(startDate.getDate())}`;
+
+const end =
+  `${endDate.getFullYear()}-` +
+  `${pad(endDate.getMonth() + 1)}-` +
+  `${pad(endDate.getDate())}`;
+
+// ----------------------------------------------------------
+// โหลดข้อมูลประวัติจาก API
+// ----------------------------------------------------------
+
+const rows = await api(
+  `/movements?startDate=${start}&endDate=${end}&limit=100`
+);
+
+// ----------------------------------------------------------
+// กรองประเภทประวัติ
+// ----------------------------------------------------------
+
+const filtered =
+  state.historyType === 'all'
+    ? rows
+    : rows.filter((r) => {
+
+        // รายการเพิ่มสินค้าใหม่
+        const isInitialAdd =
+          r.type === 'receive' &&
+          r.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
+
+        // --------------------------------------------------
+        // รับเข้า
+        // ไม่รวมรายการ "จำนวนเริ่มต้นตอนเพิ่มสินค้า"
+        // --------------------------------------------------
+
+        if (state.historyType === 'receive') {
+          return (
             r.type === 'receive' &&
-            r.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
+            !isInitialAdd
+          );
+        }
 
-          // ไม่ให้ "เพิ่มเข้า" ปรากฏในตัวกรอง "รับเข้า"
-          if (state.historyType === 'receive') {
-            return r.type === 'receive' && !isInitialAdd;
-          }
+        // --------------------------------------------------
+        // เพิ่มเข้า
+        // --------------------------------------------------
 
-          // ถ้าเลือก "เพิ่มเข้า"
-          if (state.historyType === 'initial') {
-            return isInitialAdd;
-          }
+        if (state.historyType === 'initial') {
+          return isInitialAdd;
+        }
 
-          // ย้ายคลัง
-          if (state.historyType === 'transfer') {
-            return r.type.startsWith('transfer');
-          }
+        // --------------------------------------------------
+        // ย้ายคลัง
+        // --------------------------------------------------
 
-          return r.type === state.historyType;
-        });
+        if (state.historyType === 'transfer') {
+          return (
+            r.type === 'transfer_in' ||
+            r.type === 'transfer_out'
+          );
+        }
 
-  list.innerHTML = filtered.length
-    ? filtered.map(movementRow).join('')
-    : '<div class="empty">ไม่มีรายการ</div>';
+        // --------------------------------------------------
+        // ประเภทอื่น ๆ
+        // --------------------------------------------------
+
+        return r.type === state.historyType;
+      });
+
+// ----------------------------------------------------------
+// แสดงผล
+// ----------------------------------------------------------
+
+if (filtered.length > 0) {
+  list.innerHTML = filtered
+    .map(movementRow)
+    .join('');
+} else {
+  list.innerHTML = `
+    <div class="empty">
+      ไม่มีรายการในช่วงวันที่นี้
+    </div>
+  `;
+}
+
+} catch (err) {
+
+// ----------------------------------------------------------
+// กรณีโหลดข้อมูลไม่สำเร็จ
+// ----------------------------------------------------------
+
+console.error('renderHistory error:', err);
+
+list.innerHTML = `
+  <div class="empty" style="color:var(--danger)">
+    โหลดประวัติไม่สำเร็จ
+    <br>
+    <small>${esc(err.message)}</small>
+  </div>
+`;
+
+}
 }
 
 /* -------------------------------------------------------- bottom sheet */
