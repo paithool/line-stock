@@ -932,10 +932,15 @@ document.addEventListener(
        เลือกวันที่เริ่มต้น
     -------------------------------------------------------- */
 
-    start?.addEventListener(
-      'change',
-      autoSearchByDate
-    );
+    start?.addEventListener('change', () => {
+  alert('วันที่เริ่มต้นเปลี่ยน');
+  autoSearchByDate();
+});
+
+end?.addEventListener('change', () => {
+  alert('วันที่สิ้นสุดเปลี่ยน');
+  autoSearchByDate();
+});
 
     /* --------------------------------------------------------
        เลือกวันที่สิ้นสุด
