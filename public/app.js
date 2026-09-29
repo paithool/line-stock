@@ -355,8 +355,8 @@ async function renderHistory() {
     // ----------------------------------------------------------
 
     const rows = await api(
-      `/history?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
-    );
+  `/movements?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&limit=100`
+);
 
     console.log('HISTORY ROWS:', rows);
 
