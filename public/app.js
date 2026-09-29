@@ -1092,11 +1092,11 @@ document.addEventListener('click', (e) => {
     return renderHistory();
   }
 });
-$('#historyStartDate')?.addEventListener('change', () => {
+$('#StartDate')?.addEventListener('change', () => {
   renderHistory();
 });
 
-$('#historyEndDate')?.addEventListener('change', () => {
+$('#EndDate')?.addEventListener('change', () => {
   renderHistory();
 });
 
