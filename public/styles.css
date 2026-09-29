@@ -439,3 +439,54 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   width: calc(100% - 24px);
 }
 
+/* ช่องเลือกวันที่ในหน้าประวัติ */
+.history-date-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.history-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-date-field label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.history-date-field input[type="date"] {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+
+  background: #ffffff;
+  color: #111827;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+
+  color-scheme: light;
+}
+
+/* สีของปฏิทิน/ตัวเลขวันที่ใน Chrome */
+.history-date-field input[type="date"]::-webkit-datetime-edit,
+.history-date-field input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.history-date-field input[type="date"]::-webkit-datetime-edit-text,
+.history-date-field input[type="date"]::-webkit-datetime-edit-month-field,
+.history-date-field input[type="date"]::-webkit-datetime-edit-day-field,
+.history-date-field input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #111827;
+}
+
+.history-date-field input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.8;
+}
