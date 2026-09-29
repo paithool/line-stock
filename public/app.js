@@ -1082,6 +1082,13 @@ document.addEventListener('click', (e) => {
     return renderHistory();
   }
 });
+$('#historyStartDate')?.addEventListener('change', () => {
+  renderHistory();
+});
+
+$('#historyEndDate')?.addEventListener('change', () => {
+  renderHistory();
+});
 
 let searchTimer;
 $('#searchInput').addEventListener('input', (e) => {
