@@ -166,13 +166,35 @@ api.delete('/products/:id', async (c) => {
 });
 
 /* ------------------------------------------------------------ movements */
-
 api.get('/movements', async (c) => {
-  const productId = c.req.query('productId') ? Number(c.req.query('productId')) : undefined;
-  const locationId = c.req.query('locationId') ? Number(c.req.query('locationId')) : undefined;
-  const limit = Math.min(Number(c.req.query('limit') ?? 60), 200);
-  return c.json(await repo.listMovements(c.env.DB, { productId, locationId, limit }));
+  const productId = c.req.query('productId')
+    ? Number(c.req.query('productId'))
+    : undefined;
+
+  const locationId = c.req.query('locationId')
+    ? Number(c.req.query('locationId'))
+    : undefined;
+
+  const startDate = c.req.query('startDate')?.trim() || undefined;
+
+  const endDate = c.req.query('endDate')?.trim() || undefined;
+
+  const limit = Math.min(
+    Math.max(Number(c.req.query('limit') ?? 60), 1),
+    200,
+  );
+
+  return c.json(
+    await repo.listMovements(c.env.DB, {
+      productId,
+      locationId,
+      startDate,
+      endDate,
+      limit,
+    }),
+  );
 });
+
 
 api.post('/movements', async (c) => {
   const body = await c.req.json<{
