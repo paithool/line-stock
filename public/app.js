@@ -309,7 +309,18 @@ async function renderHistory() {
   const list = $('#historyList');
   list.innerHTML = '<div class="skeleton"></div>';
 
-  const rows = await api('/movements?limit=100');
+  const params = new URLSearchParams();
+params.set('limit', '200');
+
+if (state.historyStartDate) {
+  params.set('startDate', state.historyStartDate);
+}
+
+if (state.historyEndDate) {
+  params.set('endDate', state.historyEndDate);
+}
+
+const rows = await api(`/movements?${params.toString()}`);
 
   const filtered =
     state.historyType === 'all'
