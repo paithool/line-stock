@@ -13,6 +13,8 @@ const state = {
   locations: [],
   filters: { q: '', status: 'all', locationId: '' },
   historyType: 'all',
+  historyStartDate: '',
+  historyEndDate: '',
   summary: null,
 };
 
