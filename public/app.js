@@ -307,50 +307,78 @@ function renderSettingsLocations(byLocation = []) {
 
 async function renderHistory() {
   const list = $('#historyList');
+
+  if (!list) return;
+
   list.innerHTML = '<div class="skeleton"></div>';
 
-  const params = new URLSearchParams();
-params.set('limit', '200');
+  try {
+    const params = new URLSearchParams();
 
-if (state.historyStartDate) {
-  params.set('startDate', state.historyStartDate);
-}
+    params.set('limit', '200');
 
-if (state.historyEndDate) {
-  params.set('endDate', state.historyEndDate);
-}
+    // วันที่เริ่มต้น
+    if (state.historyStartDate) {
+      params.set('startDate', state.historyStartDate);
+    }
 
-const rows = await api(`/movements?${params.toString()}`);
+    // วันที่สิ้นสุด
+    if (state.historyEndDate) {
+      params.set('endDate', state.historyEndDate);
+    }
 
-  const filtered =
-    state.historyType === 'all'
-      ? rows
-      : rows.filter((r) => {
-          const isInitialAdd =
-            r.type === 'receive' &&
-            r.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
+    // เรียกข้อมูลประวัติจาก API
+    const rows = await api(`/movements?${params.toString()}`);
 
-          // ไม่ให้ "เพิ่มเข้า" ปรากฏในตัวกรอง "รับเข้า"
-          if (state.historyType === 'receive') {
-            return r.type === 'receive' && !isInitialAdd;
-          }
+    // กรองตามประเภท
+    const filtered =
+      state.historyType === 'all'
+        ? rows
+        : rows.filter((r) => {
 
-          // ถ้าเลือก "เพิ่มเข้า"
-          if (state.historyType === 'initial') {
-            return isInitialAdd;
-          }
+            const isInitialAdd =
+              r.type === 'receive' &&
+              r.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
 
-          // ย้ายคลัง
-          if (state.historyType === 'transfer') {
-            return r.type.startsWith('transfer');
-          }
+            // เพิ่มเข้า
+            if (state.historyType === 'initial') {
+              return isInitialAdd;
+            }
 
-          return r.type === state.historyType;
-        });
+            // รับเข้า
+            if (state.historyType === 'receive') {
+              return r.type === 'receive' && !isInitialAdd;
+            }
 
-  list.innerHTML = filtered.length
-    ? filtered.map(movementRow).join('')
-    : '<div class="empty">ไม่มีรายการ</div>';
+            // ย้ายคลัง
+            if (state.historyType === 'transfer') {
+              return (
+                r.type === 'transfer' ||
+                r.type === 'transfer_in' ||
+                r.type === 'transfer_out'
+              );
+            }
+
+            // ประเภทอื่น
+            return r.type === state.historyType;
+          });
+
+    // แสดงผล
+    list.innerHTML = filtered.length
+      ? filtered.map(movementRow).join('')
+      : '<div class="empty">ไม่มีรายการในช่วงวันที่เลือก</div>';
+
+  } catch (err) {
+
+    console.error('renderHistory error:', err);
+
+    list.innerHTML = `
+      <div class="empty">
+        ไม่สามารถโหลดประวัติได้<br>
+        <small>${esc(err.message)}</small>
+      </div>
+    `;
+  }
 }
 
 /* -------------------------------------------------------- bottom sheet */
