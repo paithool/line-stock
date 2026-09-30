@@ -1004,6 +1004,25 @@ $('#locationFilter').addEventListener('change', (e) => {
   loadProducts().then(renderProducts);
 });
 
+// ค้นหาประวัติตามช่วงวันที่
+$('#historySearchBtn').addEventListener('click', () => {
+  const startDate = $('#historyStartDate').value;
+  const endDate = $('#historyEndDate').value;
+
+  // ตรวจสอบวันที่
+  if (startDate && endDate && startDate > endDate) {
+    alert('วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด');
+    return;
+  }
+
+  // เก็บวันที่ไว้ใน state
+  state.historyStartDate = startDate;
+  state.historyEndDate = endDate;
+
+  // โหลดประวัติใหม่
+  renderHistory();
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet();
 });
