@@ -88,32 +88,54 @@
     }
 
     @media print {
-      body {
-        padding: 0;
-      }
 
-      .toolbar {
-        display: none;
-      }
+  body {
+    padding: 0;
+  }
 
-      .print-header {
-        margin-bottom: 12px;
-      }
+  .toolbar {
+    display: none;
+  }
 
-      table {
-        font-size: 11px;
-      }
+  .print-header {
+    margin-bottom: 12px;
+  }
 
-      th,
-      td {
-        padding: 5px;
-      }
+  table {
+    font-size: 11px;
+  }
 
-      @page {
-        size: A4 landscape;
-        margin: 10mm;
-      }
-    }
+  th,
+  td {
+    padding: 5px;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  body.paper-80mm {
+    width: 80mm;
+  }
+
+  body.paper-58mm {
+    width: 58mm;
+  }
+
+  body.paper-80mm table,
+  body.paper-58mm table {
+    width: 100%;
+    font-size: 9px;
+  }
+
+  body.paper-80mm th,
+  body.paper-80mm td,
+  body.paper-58mm th,
+  body.paper-58mm td {
+    padding: 3px;
+  }
+}
   </style></head><body>  <div class="toolbar">
     <select id="paperSize">
   <option value="A4">A4</option>
