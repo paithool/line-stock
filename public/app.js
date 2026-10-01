@@ -1050,6 +1050,17 @@ $('#historySearchBtn').addEventListener('click', () => {
   // โหลดประวัติใหม่
   renderHistory();
 });
+$('#historyPrintBtn').addEventListener('click', () => {
+  const startDate = $('#historyStartDate').value;
+  const endDate = $('#historyEndDate').value;
+
+  const params = new URLSearchParams();
+
+  if (startDate) params.set('startDate', startDate);
+  if (endDate) params.set('endDate', endDate);
+
+  window.open(`/print-history.html?${params.toString()}`, '_blank');
+});
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet();
