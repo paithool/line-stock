@@ -91,6 +91,7 @@
 
   body {
     padding: 0;
+    margin: 0;
   }
 
   .toolbar {
@@ -110,30 +111,49 @@
     padding: 5px;
   }
 
+  /* A4 */
   @page {
     size: A4 landscape;
     margin: 10mm;
   }
 
+  body.paper-A4 {
+    width: 100%;
+  }
+
+  /* เครื่องพิมพ์ใบเสร็จ 80 mm */
   body.paper-80mm {
     width: 80mm;
   }
 
-  body.paper-58mm {
-    width: 58mm;
-  }
-
-  body.paper-80mm table,
-  body.paper-58mm table {
+  body.paper-80mm table {
     width: 100%;
     font-size: 9px;
   }
 
   body.paper-80mm th,
-  body.paper-80mm td,
+  body.paper-80mm td {
+    padding: 3px;
+  }
+
+  /* เครื่องพิมพ์ใบเสร็จ 58 mm */
+  body.paper-58mm {
+    width: 58mm;
+  }
+
+  body.paper-58mm table {
+    width: 100%;
+    font-size: 8px;
+  }
+
   body.paper-58mm th,
   body.paper-58mm td {
-    padding: 3px;
+    padding: 2px;
+  }
+
+  /* ให้กระดาษใบเสร็จเป็นแนวตั้ง */
+  @page {
+    margin: 5mm;
   }
 }
   </style></head><body>  <div class="toolbar">
