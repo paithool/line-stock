@@ -392,7 +392,13 @@ function escapeHtml(value) {
   );
 }
 
+document.getElementById('paperSize').addEventListener('change', (e) => {
+  document.body.classList.remove('paper-A4', 'paper-80mm', 'paper-58mm');
 
+  document.body.classList.add(
+    `paper-${e.target.value}`
+  );
+});
 loadPrintHistory();
 </script></body>
 </html>
