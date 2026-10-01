@@ -449,12 +449,14 @@ function setPaperSize(size) {
     printStyle.textContent = `
       @media print {
         @page {
-          size: 58mm 200mm;
+          size: 58mm;
           margin: 3mm;
         }
 
         body {
-          width: 58mm;
+          width: 58mm;  
+          margin: 0;
+        padding: 0;
         }
       }
     `;
