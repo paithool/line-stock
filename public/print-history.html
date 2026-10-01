@@ -412,14 +412,79 @@ function escapeHtml(value) {
   );
 }
 
-document.getElementById('paperSize').addEventListener('change', (e) => {
-  document.body.classList.remove('paper-A4', 'paper-80mm', 'paper-58mm');
+const paperSize = document.getElementById('paperSize');
 
-  document.body.classList.add(
-    `paper-${e.target.value}`
+function setPaperSize(size) {
+
+  document.body.classList.remove(
+    'paper-A4',
+    'paper-80mm',
+    'paper-58mm'
   );
+
+  document.body.classList.add(`paper-${size}`);
+
+  let printStyle = document.getElementById('dynamicPrintStyle');
+
+  if (!printStyle) {
+    printStyle = document.createElement('style');
+    printStyle.id = 'dynamicPrintStyle';
+    document.head.appendChild(printStyle);
+  }
+
+  if (size === '80mm') {
+
+    printStyle.textContent = `
+      @media print {
+        @page {
+          size: 80mm auto;
+          margin: 3mm;
+        }
+
+        body {
+          width: 80mm;
+        }
+      }
+    `;
+
+  } else if (size === '58mm') {
+
+    printStyle.textContent = `
+      @media print {
+        @page {
+          size: 58mm auto;
+          margin: 3mm;
+        }
+
+        body {
+          width: 58mm;
+        }
+      }
+    `;
+
+  } else {
+
+    printStyle.textContent = `
+      @media print {
+        @page {
+          size: A4 landscape;
+          margin: 10mm;
+        }
+
+        body {
+          width: 100%;
+        }
+      }
+    `;
+  }
+}
+
+paperSize.addEventListener('change', (e) => {
+  setPaperSize(e.target.value);
 });
-    document.body.classList.add('paper-A4');
+
+setPaperSize('A4');
+
 loadPrintHistory();
 </script></body>
 </html>
