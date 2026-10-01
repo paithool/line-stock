@@ -1,8 +1,7 @@
-
 <!DOCTYPE html><html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />  <title>รายงานประวัติคลังสินค้า</title>  <style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">  <title>พิมพ์ประวัติการเคลื่อนไหว</title>  <style>
     * {
       box-sizing: border-box;
     }
@@ -12,85 +11,61 @@
       padding: 24px;
       font-family: Arial, "Tahoma", sans-serif;
       color: #111;
-      background: #f3f4f6;
+      background: #fff;
     }
 
-    .print-page {
-      max-width: 1100px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-    }
-
-    .report-header {
+    .print-header {
       text-align: center;
       margin-bottom: 20px;
     }
 
-    .report-header h1 {
+    .print-header h1 {
       margin: 0 0 8px;
-      font-size: 26px;
+      font-size: 24px;
     }
 
-    .report-date {
+    .print-header p {
+      margin: 4px 0;
       font-size: 14px;
-      color: #555;
     }
 
     .toolbar {
       display: flex;
-      justify-content: center;
       gap: 10px;
       margin-bottom: 20px;
     }
 
     .toolbar button {
-      border: 0;
-      border-radius: 8px;
-      padding: 12px 20px;
-      font-size: 16px;
+      padding: 10px 18px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f5f5f5;
       cursor: pointer;
+      font-size: 14px;
     }
 
-    .print-btn {
-      background: #2563eb;
-      color: white;
-    }
-
-    .close-btn {
-      background: #e5e7eb;
-      color: #111;
-    }
-
-    .loading,
-    .empty,
-    .error {
-      text-align: center;
-      padding: 30px;
-    }
-
-    .error {
-      color: #dc2626;
+    .table-wrap {
+      overflow-x: auto;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
+      font-size: 13px;
     }
 
     th,
     td {
       border: 1px solid #999;
-      padding: 8px 10px;
-      font-size: 13px;
+      padding: 8px;
       text-align: left;
-      vertical-align: middle;
+      vertical-align: top;
     }
 
     th {
-      background: #e5e7eb;
-      font-weight: bold;
+      background: #eee;
+      text-align: center;
+      white-space: nowrap;
     }
 
     .number {
@@ -101,15 +76,19 @@
       text-align: center;
     }
 
+    .loading,
+    .empty,
+    .error {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .error {
+      color: #c00;
+    }
+
     @media print {
-
       body {
-        background: white;
-        padding: 0;
-      }
-
-      .print-page {
-        max-width: none;
         padding: 0;
       }
 
@@ -117,273 +96,276 @@
         display: none;
       }
 
-      .report-header {
-        margin-bottom: 15px;
+      .print-header {
+        margin-bottom: 12px;
       }
 
       table {
-        page-break-inside: auto;
+        font-size: 11px;
       }
 
-      tr {
-        page-break-inside: avoid;
-        page-break-after: auto;
+      th,
+      td {
+        padding: 5px;
       }
 
-      thead {
-        display: table-header-group;
-      }
-
-      th {
-        background: #eee !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
       }
     }
-  </style></head><body>  <div class="print-page"><div class="toolbar">
-  <button class="print-btn" onclick="window.print()">
-    🖨️ พิมพ์รายการ
-  </button>
+  </style></head><body>  <div class="toolbar">
+    <button type="button" onclick="window.print()">🖨️ พิมพ์</button>
+    <button type="button" onclick="window.close()">✕ ปิด</button>
+  </div>  <div class="print-header">
+    <h1>ประวัติการเคลื่อนไหวสินค้า</h1><p id="dateRange">
+  กำลังโหลด...
+</p>
 
-  <button class="close-btn" onclick="window.close()">
-    ✕ ปิด
-  </button>
-</div>
+  </div>  <div id="printContent">
+    <div class="loading">
+      กำลังโหลดรายการ...
+    </div>
+  </div><script>
+async function loadPrintHistory() {
 
-<div class="report-header">
-  <h1>รายงานประวัติคลังสินค้า</h1>
-  <div class="report-date" id="reportDate">
-    กำลังโหลด...
-  </div>
-</div>
+  const params = new URLSearchParams(window.location.search);
 
-<div id="reportContent">
-  <div class="loading">
-    กำลังโหลดรายการ...
-  </div>
-</div>
+  const startDate = params.get('startDate') || '';
+  const endDate = params.get('endDate') || '';
 
-  </div>  <script>
-    async function loadReport() {
+  const apiParams = new URLSearchParams();
 
-      const params = new URLSearchParams(window.location.search);
+  apiParams.set('limit', '200');
 
-      const startDate = params.get('startDate') || '';
-      const endDate = params.get('endDate') || '';
+  if (startDate) {
+    apiParams.set('startDate', startDate);
+  }
 
-      const reportDate = document.getElementById('reportDate');
+  if (endDate) {
+    apiParams.set('endDate', endDate);
+  }
 
-      if (startDate || endDate) {
+  // แสดงช่วงวันที่ด้านบน
+  if (startDate || endDate) {
 
-        reportDate.textContent =
-          `ช่วงวันที่ ${startDate || '-'} ถึง ${endDate || '-'}`;
+    let text = '';
 
-      } else {
-
-        reportDate.textContent = 'ประวัติทั้งหมด';
-
-      }
-
-      const apiParams = new URLSearchParams();
-
-      apiParams.set('limit', '200');
-
-      if (startDate) {
-        apiParams.set('startDate', startDate);
-      }
-
-      if (endDate) {
-        apiParams.set('endDate', endDate);
-      }
-
-      const content = document.getElementById('reportContent');
-
-      try {
-
-        const response = await fetch(
-          `/api/movements?${apiParams.toString()}`,
-          {
-            credentials: 'same-origin'
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error || `เกิดข้อผิดพลาด (${response.status})`
-          );
-        }
-
-        const rows = Array.isArray(data)
-          ? data
-          : data.movements || data.rows || [];
-
-        if (!rows.length) {
-
-          content.innerHTML = `
-            <div class="empty">
-              ไม่พบรายการในช่วงวันที่ที่เลือก
-            </div>
-          `;
-
-          return;
-        }
-
-        content.innerHTML = `
-          <table>
-
-            <thead>
-              <tr>
-                <th class="center">ลำดับ</th>
-                <th>วันที่ / เวลา</th>
-                <th>สินค้า</th>
-                <th>รายการ</th>
-                <th>คลัง</th>
-                <th class="number">จำนวน</th>
-                <th class="number">คงเหลือ</th>
-                <th>ผู้ทำรายการ</th>
-                <th>หมายเหตุ</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              ${rows.map((row, index) => {
-
-                const isInitialAdd =
-                  row.type === 'receive' &&
-                  row.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
-
-                let typeLabel = row.type;
-
-                if (isInitialAdd) {
-                  typeLabel = 'เพิ่มเข้า';
-                } else if (row.type === 'issue') {
-                  typeLabel = 'เบิกออก';
-                } else if (row.type === 'receive') {
-                  typeLabel = 'รับเข้า';
-                } else if (row.type === 'adjust') {
-                  typeLabel = 'ปรับยอด';
-                } else if (row.type === 'transfer_out') {
-                  typeLabel = 'ย้ายออก';
-                } else if (row.type === 'transfer_in') {
-                  typeLabel = 'ย้ายเข้า';
-                } else if (row.type === 'archive') {
-                  typeLabel = 'นำสินค้าออกจากระบบ';
-                }
-
-                const dateText = row.created_at
-                  ? new Date(
-                      String(row.created_at).replace(' ', 'T') + 'Z'
-                    ).toLocaleString(
-                      'th-TH',
-                      {
-                        dateStyle: 'short',
-                        timeStyle: 'short',
-                        timeZone: 'Asia/Bangkok'
-                      }
-                    )
-                  : '-';
-
-                const delta = Number(row.delta) || 0;
-
-                return `
-                  <tr>
-
-                    <td class="center">
-                      ${index + 1}
-                    </td>
-
-                    <td>
-                      ${dateText}
-                    </td>
-
-                    <td>
-                      ${escapeHtml(row.product_name || '-')}
-                    </td>
-
-                    <td>
-                      ${escapeHtml(typeLabel)}
-                    </td>
-
-                    <td>
-                      ${escapeHtml(row.location_name || '-')}
-                    </td>
-
-                    <td class="number">
-                      ${delta > 0 ? '+' : ''}
-                      ${formatNumber(delta)}
-                    </td>
-
-                    <td class="number">
-                      ${formatNumber(row.balance_after)}
-                    </td>
-
-                    <td>
-                      ${escapeHtml(row.actor_name || '-')}
-                    </td>
-
-                    <td>
-                      ${escapeHtml(
-                        isInitialAdd
-                          ? ''
-                          : (row.note || '')
-                      )}
-                    </td>
-
-                  </tr>
-                `;
-
-              }).join('')}
-
-            </tbody>
-
-          </table>
-        `;
-
-      } catch (error) {
-
-        console.error(error);
-
-        content.innerHTML = `
-          <div class="error">
-            ไม่สามารถโหลดข้อมูลประวัติได้<br>
-            ${escapeHtml(error.message)}
-          </div>
-        `;
-
-      }
+    if (startDate && endDate) {
+      text = `วันที่ ${startDate} ถึง ${endDate}`;
+    } else if (startDate) {
+      text = `ตั้งแต่วันที่ ${startDate}`;
+    } else {
+      text = `ถึงวันที่ ${endDate}`;
     }
 
-    function formatNumber(value) {
+    document.getElementById('dateRange').textContent = text;
 
-      const number =
-        Math.round((Number(value) || 0) * 1000) / 1000;
+  } else {
 
-      return number.toLocaleString('th-TH', {
-        maximumFractionDigits: 3
-      });
-    }
+    document.getElementById('dateRange').textContent =
+      'ประวัติการเคลื่อนไหวทั้งหมด';
 
-    function escapeHtml(value) {
+  }
 
-      return String(value ?? '').replace(
-        /[&<>"']/g,
-        function (char) {
+  try {
 
-          return {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-          }[char];
+    const response = await fetch(
+      `/api/movements?${apiParams.toString()}`,
+      {
+        credentials: 'same-origin'
+      }
+    );
 
-        }
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || `เกิดข้อผิดพลาด (${response.status})`
       );
     }
 
-    loadReport();
-  </script></body>
+    renderTable(data);
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById('printContent').innerHTML = `
+      <div class="error">
+        ไม่สามารถโหลดรายการได้<br>
+        <small>${escapeHtml(error.message)}</small>
+      </div>
+    `;
+  }
+}
+
+
+function renderTable(rows) {
+
+  const container = document.getElementById('printContent');
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+
+    container.innerHTML = `
+      <div class="empty">
+        ไม่พบรายการในช่วงวันที่เลือก
+      </div>
+    `;
+
+    return;
+  }
+
+  const html = `
+    <div class="table-wrap">
+      <table>
+
+        <thead>
+          <tr>
+            <th>ลำดับ</th>
+            <th>วันที่ / เวลา</th>
+            <th>สินค้า</th>
+            <th>ประเภท</th>
+            <th>คลัง</th>
+            <th>จำนวน</th>
+            <th>คงเหลือ</th>
+            <th>ผู้ทำรายการ</th>
+            <th>หมายเหตุ</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${rows.map((row, index) => {
+
+            const meta = getMovementMeta(row);
+
+            return `
+              <tr>
+
+                <td class="center">
+                  ${index + 1}
+                </td>
+
+                <td>
+                  ${formatDate(row.created_at)}
+                </td>
+
+                <td>
+                  ${escapeHtml(row.product_name)}
+                </td>
+
+                <td class="center">
+                  ${meta}
+                </td>
+
+                <td>
+                  ${escapeHtml(row.location_name)}
+                </td>
+
+                <td class="number">
+                  ${formatQty(row.delta)}
+                </td>
+
+                <td class="number">
+                  ${formatQty(row.balance_after)}
+                </td>
+
+                <td>
+                  ${escapeHtml(row.actor_name || '-')}
+                </td>
+
+                <td>
+                  ${escapeHtml(row.note || '')}
+                </td>
+
+              </tr>
+            `;
+
+          }).join('')}
+        </tbody>
+
+      </table>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+
+function getMovementMeta(row) {
+
+  const isInitialAdd =
+    row.type === 'receive' &&
+    row.note === 'จำนวนเริ่มต้นตอนเพิ่มสินค้า';
+
+  if (isInitialAdd) {
+    return 'เพิ่มเข้า';
+  }
+
+  const labels = {
+    issue: 'เบิกออก',
+    receive: 'รับเข้า',
+    adjust: 'ปรับยอด',
+    transfer: 'ย้ายคลัง',
+    transfer_in: 'ย้ายเข้า',
+    transfer_out: 'ย้ายออก',
+    archive: 'สินค้าออกจากระบบ'
+  };
+
+  return labels[row.type] || row.type || '-';
+}
+
+
+function formatQty(value) {
+
+  const number = Number(value) || 0;
+
+  return number.toLocaleString('th-TH', {
+    maximumFractionDigits: 3
+  });
+}
+
+
+function formatDate(value) {
+
+  if (!value) return '-';
+
+  const date = new Date(
+    String(value).replace(' ', 'T') + 'Z'
+  );
+
+  if (Number.isNaN(date.getTime())) {
+    return escapeHtml(value);
+  }
+
+  return date.toLocaleString('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+
+function escapeHtml(value) {
+
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    function (char) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char];
+    }
+  );
+}
+
+
+loadPrintHistory();
+</script></body>
 </html>
