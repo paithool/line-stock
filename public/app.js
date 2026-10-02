@@ -1124,4 +1124,63 @@ $('#logoutBtn').addEventListener('click', async () => {
     alert(err.message || 'ออกจากระบบไม่สำเร็จ');
   }
 });
+
+$('#changePasswordBtn').addEventListener('click', async () => {
+  const newPassword = $('#newPassword').value;
+  const confirmPassword = $('#confirmPassword').value;
+  const message = $('#changePasswordMessage');
+
+  message.hidden = true;
+
+  if (!newPassword || !confirmPassword) {
+    message.textContent = 'กรุณากรอกรหัสผ่านใหม่ให้ครบ';
+    message.style.color = '#ef4444';
+    message.hidden = false;
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    message.textContent = 'รหัสผ่านใหม่ไม่ตรงกัน';
+    message.style.color = '#ef4444';
+    message.hidden = false;
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    message.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+    message.style.color = '#ef4444';
+    message.hidden = false;
+    return;
+  }
+
+  const btn = $('#changePasswordBtn');
+  btn.disabled = true;
+  btn.textContent = 'กำลังเปลี่ยนรหัสผ่าน...';
+
+  try {
+    await api('/change-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        newPassword,
+      }),
+    });
+
+    message.textContent = 'เปลี่ยนรหัสผ่านสำเร็จ';
+    message.style.color = '#16a34a';
+    message.hidden = false;
+
+    $('#newPassword').value = '';
+    $('#confirmPassword').value = '';
+
+  } catch (err) {
+    message.textContent =
+      err.message || 'เปลี่ยนรหัสผ่านไม่สำเร็จ';
+    message.style.color = '#ef4444';
+    message.hidden = false;
+
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔐 เปลี่ยนรหัสผ่าน';
+  }
+});
 boot();
