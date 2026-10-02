@@ -1158,7 +1158,7 @@ $('#changePasswordBtn').addEventListener('click', async () => {
   btn.textContent = 'กำลังเปลี่ยนรหัสผ่าน...';
 
   try {
-    await api('/change-password', {
+    await api(`/users/${state.me.id}/password`, {
       method: 'POST',
       body: JSON.stringify({
         newPassword,
