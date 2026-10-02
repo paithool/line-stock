@@ -206,7 +206,47 @@
       <span class="row__value mono" id="meId">-</span>
     </div>
   </div>
+        
+<!-- เปลี่ยนรหัสผ่าน -->
+<div style="margin-top:20px;">
+  <div class="card__head">
+    <h3 style="margin:0;">เปลี่ยนรหัสผ่าน</h3>
+  </div>
 
+  <div style="margin-top:12px;">
+
+    <input
+      id="newPassword"
+      type="password"
+      placeholder="รหัสผ่านใหม่"
+      autocomplete="new-password"
+      style="width:100%;box-sizing:border-box;margin-bottom:10px;"
+    />
+
+    <input
+      id="confirmPassword"
+      type="password"
+      placeholder="ยืนยันรหัสผ่านใหม่"
+      autocomplete="new-password"
+      style="width:100%;box-sizing:border-box;margin-bottom:12px;"
+    />
+
+    <button
+      class="btn btn--block"
+      id="changePasswordBtn"
+      type="button"
+    >
+      🔐 เปลี่ยนรหัสผ่าน
+    </button>
+
+    <div
+      id="changePasswordMessage"
+      style="margin-top:10px;"
+      hidden
+    ></div>
+
+  </div>
+</div>
   <button
     class="btn btn--ghost btn--block"
     id="logoutBtn"
