@@ -41,6 +41,27 @@ api.use('/*', requireAuth);
 
 api.get('/me', (c) => c.json(c.get('user')));
 
+/* ------------------------------------------------------ password */
+
+api.post('/users/:id/password', async (c) => {
+  const targetUserId = Number(c.req.param('id'));
+
+  if (!Number.isInteger(targetUserId) || targetUserId <= 0) {
+    throw new AppError('รหัสผู้ใช้ไม่ถูกต้อง');
+  }
+
+  const body = await c.req.json<{
+    newPassword?: string;
+  }>();
+
+  const newPassword = body.newPassword ?? '';
+
+  return changeWebUserPassword(
+    c,
+    targetUserId,
+    newPassword,
+  );
+});
 api.get('/summary', async (c) => {
   const db = c.env.DB;
   const [summary, low, recent, locations] = await Promise.all([
