@@ -6,6 +6,7 @@ import {
   loginWebUser,
   logoutWebUser,
   requireAuth,
+  changeWebUserPassword,
   type AuthUser,
 } from './auth';
 
