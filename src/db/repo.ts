@@ -1105,6 +1105,24 @@ export async function getWebUserPasswordHash(
     .bind(username.trim())
     .first<{ id: number; password_hash: string; active: number }>();
 }
+export async function updateWebUserPassword(
+  db: D1Database,
+  userId: number,
+  passwordHash: string,
+): Promise<void> {
+  const result = await db
+    .prepare(
+      `UPDATE web_users
+       SET password_hash = ?
+       WHERE id = ?`,
+    )
+    .bind(passwordHash, userId)
+    .run();
+
+  if (result.meta.changes !== 1) {
+    throw new AppError('ไม่สามารถเปลี่ยนรหัสผ่านได้');
+  }
+}
 
 export async function updateWebUserLogin(
   db: D1Database,
