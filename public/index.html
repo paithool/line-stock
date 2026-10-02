@@ -213,23 +213,43 @@
     <h3 style="margin:0;">เปลี่ยนรหัสผ่าน</h3>
   </div>
 
-  <div style="margin-top:12px;">
+  <div style="position:relative;margin-bottom:10px;">
+  <input
+    id="newPassword"
+    type="password"
+    placeholder="รหัสผ่านใหม่"
+    autocomplete="new-password"
+    style="width:100%;box-sizing:border-box;padding-right:45px;color:#111827;background:#fff;"
+  />
 
-    <input
-      id="newPassword"
-      type="password"
-      placeholder="รหัสผ่านใหม่"
-      autocomplete="new-password"
-      style="width:100%;box-sizing:border-box;margin-bottom:10px;"
-    />
+  <button
+    type="button"
+    class="password-toggle"
+    data-target="newPassword"
+    aria-label="แสดงรหัสผ่าน"
+  >
+    👁️
+  </button>
+</div>
 
-    <input
-      id="confirmPassword"
-      type="password"
-      placeholder="ยืนยันรหัสผ่านใหม่"
-      autocomplete="new-password"
-      style="width:100%;box-sizing:border-box;margin-bottom:12px;"
-    />
+    <div style="position:relative;margin-bottom:12px;">
+  <input
+    id="confirmPassword"
+    type="password"
+    placeholder="ยืนยันรหัสผ่านใหม่"
+    autocomplete="new-password"
+    style="width:100%;box-sizing:border-box;padding-right:45px;color:#111827;background:#fff;"
+  />
+
+  <button
+    type="button"
+    class="password-toggle"
+    data-target="confirmPassword"
+    aria-label="แสดงรหัสผ่าน"
+  >
+    👁️
+  </button>
+</div>
 
     <button
       class="btn btn--block"
