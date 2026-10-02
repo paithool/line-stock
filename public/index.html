@@ -24,14 +24,24 @@
       autocomplete="username"
       style="width:100%;max-width:300px;margin-bottom:12px;"
     />
+<div style="position:relative;width:100%;max-width:300px;margin-bottom:16px;">
+  <input
+    id="loginPassword"
+    type="password"
+    placeholder="รหัสผ่าน"
+    autocomplete="current-password"
+    style="width:100%;box-sizing:border-box;padding-right:45px;color:#111827;background:#fff;"
+  />
 
-    <input
-      id="loginPassword"
-      type="password"
-      placeholder="รหัสผ่าน"
-      autocomplete="current-password"
-      style="width:100%;max-width:300px;margin-bottom:16px;"
-    />
+  <button
+    type="button"
+    class="password-toggle"
+    data-target="loginPassword"
+    aria-label="แสดงรหัสผ่าน"
+  >
+    👁️
+  </button>
+</div>
 
     <button
       id="loginBtn"
