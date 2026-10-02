@@ -501,3 +501,58 @@ export async function requireAuth(
 
   return next();
 }
+
+/* ------------------------------------------------------ change password */
+
+/**
+ * เปลี่ยนรหัสผ่านผู้ใช้
+ *
+ * ใช้โดย Admin หรือระบบจัดการบัญชี
+ * รหัสผ่านจะถูก Hash ด้วย PBKDF2 ก่อนบันทึกลง D1
+ */
+export async function changeWebUserPassword(
+  c: AppContext,
+  userId: number,
+  newPassword: string,
+): Promise<Response> {
+
+  if (!newPassword || newPassword.length < 6) {
+    return c.json(
+      { error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' },
+      400,
+    );
+  }
+
+  const user = await repo.getWebUserById(
+    c.env.DB,
+    userId,
+  );
+
+  if (!user) {
+    return c.json(
+      { error: 'ไม่พบผู้ใช้' },
+      404,
+    );
+  }
+
+  if (user.active !== 1) {
+    return c.json(
+      { error: 'บัญชีผู้ใช้นี้ถูกปิดใช้งาน' },
+      400,
+    );
+  }
+
+  const passwordHash =
+    await hashPassword(newPassword);
+
+  await repo.updateWebUserPassword(
+    c.env.DB,
+    userId,
+    passwordHash,
+  );
+
+  return c.json({
+    ok: true,
+    message: 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว',
+  });
+}
