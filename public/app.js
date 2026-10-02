@@ -1183,4 +1183,26 @@ $('#changePasswordBtn').addEventListener('click', async () => {
     btn.textContent = '🔐 เปลี่ยนรหัสผ่าน';
   }
 });
+
+/* ------------------------------------------------------
+   แสดง / ซ่อนรหัสผ่าน
+------------------------------------------------------ */
+
+$$('.password-toggle').forEach((button) => {
+  button.addEventListener('click', () => {
+    const input = document.getElementById(button.dataset.target);
+
+    if (!input) return;
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      button.textContent = '🙈';
+      button.setAttribute('aria-label', 'ซ่อนรหัสผ่าน');
+    } else {
+      input.type = 'password';
+      button.textContent = '👁️';
+      button.setAttribute('aria-label', 'แสดงรหัสผ่าน');
+    }
+  });
+});
 boot();
