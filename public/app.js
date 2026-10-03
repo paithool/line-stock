@@ -153,9 +153,11 @@ function paintUser() {
   $('#userAvatar').hidden = true;
   $('#userInitial').hidden = false;
 
-  $('#meName').textContent = name;
-  $('#meId').textContent =
-    state.me?.username ?? '-';
+  $('#editDisplayName').value =
+    state.me?.name ?? '';
+
+  $('#editUsername').value =
+    state.me?.username ?? '';
 }
 
 async function refreshAll() {
