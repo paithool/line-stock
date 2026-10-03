@@ -1085,8 +1085,12 @@ async function openAdminPage() {
 }
 
 */
+
+alert('กำลังเรียก openAdminView');
+
 try {
   await openAdminView();
+  alert('openAdminView ทำงานเสร็จแล้ว');
 } catch (err) {
   alert('openAdminView ERROR: ' + err.message);
 }
