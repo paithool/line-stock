@@ -1051,7 +1051,7 @@ async function scanAndOpen() {
 }
 
 async function openAdminPage() {
-   alert('openAdminPage ถูกเรียก');
+
   state.tab = 'admin';
 
   // ซ่อนทุกหน้า
@@ -1067,11 +1067,9 @@ async function openAdminPage() {
     return;
   }
 
-  adminView.hidden = false;
-   adminView.style.display = 'grid';
-   alert('Admin View hidden = ' + adminView.hidden);
-
-  // ปิดสถานะ active ของเมนูด้านล่างทั้งหมด
+ adminView.hidden = false;
+   
+    // ปิดสถานะ active ของเมนูด้านล่างทั้งหมด
   $$('.tab[data-tab]').forEach((b) => {
     b.classList.remove('is-active');
   });
@@ -1083,18 +1081,12 @@ async function openAdminPage() {
     behavior: 'smooth',
   });
 
- 
-
-
-
-
-alert('กำลังเรียก openAdminView');
-
-try {
+ try {
   await openAdminView();
-  alert('openAdminView ทำงานเสร็จแล้ว');
+  
 } catch (err) {
-  alert('openAdminView ERROR: ' + err.message);
+    console.error('openAdminView ERROR:', err);
+  
 }
 }
    
