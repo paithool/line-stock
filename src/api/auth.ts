@@ -490,6 +490,7 @@ export async function requireAuth(
     id: user.id,
     username: user.username,
     name: user.display_name,
+    role: user.role,
   };
 
   c.set('user', authUser);
