@@ -112,7 +112,7 @@ async function boot() {
     $('#app').hidden = false;
 
     if (state.me.role === 'admin') {
-      switchTab('admin');
+      await openAdminPage();
     } else {
       await refreshAll();
       applyDeepLink();
