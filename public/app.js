@@ -1040,18 +1040,44 @@ async function scanAndOpen() {
 /* ----------------------------------------------------------- routing */
 
 function switchTab(tab) {
-  if (!['overview', 'products', 'history', 'settings'].includes(tab)) return;
+  if (!['overview', 'products', 'history', 'settings', 'admin'].includes(tab)) {
+    return;
+  }
+
   state.tab = tab;
-  $$('.view').forEach((v) => (v.hidden = v.dataset.view !== tab));
-  $$('.tab[data-tab]').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === tab));
+
+  $$('.view').forEach(
+    (v) => (v.hidden = v.dataset.view !== tab)
+  );
+
+  $$('.tab[data-tab]').forEach(
+    (b) =>
+      b.classList.toggle(
+        'is-active',
+        b.dataset.tab === tab
+      )
+  );
+
   $('#topbarSubtitle').textContent = {
     overview: 'ภาพรวมวันนี้',
     products: 'รายการสินค้าทั้งหมด',
     history: 'ประวัติการเคลื่อนไหว',
     settings: 'ตั้งค่าระบบ',
+    admin: 'จัดการผู้ใช้',
   }[tab];
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  if (tab === 'history') renderHistory();
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
+
+  if (tab === 'history') {
+    renderHistory();
+  }
+
+  if (tab === 'admin') {
+    openAdminView();
+  }
 }
 
 /* ---------------------------------------------------------- listeners */
