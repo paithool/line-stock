@@ -7,6 +7,7 @@ import {
   logoutWebUser,
   requireAuth,
   changeWebUserPassword,
+  updateWebUserProfile,
   type AuthUser,
 } from './auth';
 
@@ -62,6 +63,33 @@ api.post('/users/:id/password', async (c) => {
     newPassword,
   );
 });
+
+api.post('/users/:id/profile', async (c) => {
+  const targetUserId = Number(c.req.param('id'));
+
+  if (
+    !Number.isInteger(targetUserId) ||
+    targetUserId <= 0
+  ) {
+    throw new AppError('รหัสผู้ใช้ไม่ถูกต้อง');
+  }
+
+  const body = await c.req.json<{
+    username?: string;
+    displayName?: string;
+  }>();
+
+  const username = body.username ?? '';
+  const displayName = body.displayName ?? '';
+
+  return updateWebUserProfile(
+    c,
+    targetUserId,
+    username,
+    displayName,
+  );
+});
+
 api.get('/summary', async (c) => {
   const db = c.env.DB;
   const [summary, low, recent, locations] = await Promise.all([
