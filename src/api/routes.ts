@@ -6,6 +6,7 @@ import {
   loginWebUser,
   logoutWebUser,
   requireAuth,
+  requireAdmin,
   changeWebUserPassword,
   updateWebUserProfile,
   type AuthUser,
