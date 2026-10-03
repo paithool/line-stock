@@ -52,6 +52,23 @@ api.get('/admin/users', requireAdmin, async (c) => {
   });
 });
 
+api.post('/admin/users', requireAdmin, async (c) => {
+  const body = await c.req.json<{
+    username?: string;
+    displayName?: string;
+    password?: string;
+    role?: string;
+  }>();
+
+  return createWebUserByAdmin(
+    c,
+    body.username ?? '',
+    body.displayName ?? '',
+    body.password ?? '',
+    body.role ?? 'user',
+  );
+});
+
 /* ------------------------------------------------------ password */
 
 api.post('/users/:id/password', async (c) => {
