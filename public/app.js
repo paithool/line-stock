@@ -1067,6 +1067,7 @@ async function openAdminPage() {
   }
 
   adminView.hidden = false;
+   alert('Admin View hidden = ' + adminView.hidden);
 
   // ปิดสถานะ active ของเมนูด้านล่างทั้งหมด
   $$('.tab[data-tab]').forEach((b) => {
