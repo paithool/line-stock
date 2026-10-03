@@ -231,22 +231,29 @@ async function refreshAdminUsers() {
               </div>
             </div>
 
-            <div>
-              <span
-                class="badge ${
-                  Number(user.active) === 1
-                    ? 'badge--ok'
-                    : 'badge--out'
-                }"
-              >
-                ${
-                  Number(user.active) === 1
-                    ? 'ใช้งาน'
-                    : 'ปิดใช้งาน'
-                }
-              </span>
-            </div>
-          </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+  <span
+    class="badge ${
+      Number(user.active) === 1
+        ? 'badge--ok'
+        : 'badge--out'
+    }"
+  >
+    ${
+      Number(user.active) === 1
+        ? 'ใช้งาน'
+        : 'ปิดใช้งาน'
+    }
+  </span>
+
+  <button
+    type="button"
+    class="btn btn--ghost"
+    data-admin-edit-user="${user.id}"
+  >
+    แก้ไข
+  </button>
+</div>
         `).join('')
       : '<div class="empty">ยังไม่มีบัญชีผู้ใช้</div>';
 
