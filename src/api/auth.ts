@@ -287,6 +287,7 @@ async function ensureInitialAdmin(
       passwordHash,
       env.WEB_ADMIN_DISPLAY_NAME?.trim() ||
         cleanAdminUsername,
+      'admin',
     );
   } catch (err) {
     // ป้องกันกรณีมีการ Login พร้อมกัน 2 ครั้ง
