@@ -556,3 +556,74 @@ export async function changeWebUserPassword(
     message: 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว',
   });
 }
+export async function updateWebUserProfile(
+  c: AppContext,
+  userId: number,
+  username: string,
+  displayName: string,
+): Promise<Response> {
+  const cleanUsername = username.trim();
+  const cleanDisplayName = displayName.trim();
+
+  if (!cleanUsername) {
+    return c.json(
+      { error: 'กรุณาระบุชื่อผู้ใช้' },
+      400,
+    );
+  }
+
+  if (!cleanDisplayName) {
+    return c.json(
+      { error: 'กรุณาระบุชื่อที่แสดง' },
+      400,
+    );
+  }
+
+  const user = await repo.getWebUserById(
+    c.env.DB,
+    userId,
+  );
+
+  if (!user) {
+    return c.json(
+      { error: 'ไม่พบผู้ใช้' },
+      404,
+    );
+  }
+
+  if (user.active !== 1) {
+    return c.json(
+      { error: 'บัญชีผู้ใช้นี้ถูกปิดใช้งาน' },
+      400,
+    );
+  }
+
+  try {
+    const updated =
+      await repo.updateWebUserProfile(
+        c.env.DB,
+        userId,
+        cleanUsername,
+        cleanDisplayName,
+      );
+
+    return c.json({
+      ok: true,
+      message: 'แก้ไขข้อมูลผู้ใช้เรียบร้อยแล้ว',
+      user: {
+        id: updated.id,
+        username: updated.username,
+        name: updated.display_name,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Error) {
+      return c.json(
+        { error: err.message },
+        400,
+      );
+    }
+
+    throw err;
+  }
+}
