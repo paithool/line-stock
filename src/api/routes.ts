@@ -43,6 +43,14 @@ api.use('/*', requireAuth);
 
 api.get('/me', (c) => c.json(c.get('user')));
 
+api.get('/admin/users', requireAdmin, async (c) => {
+  const users = await repo.listWebUsers(c.env.DB);
+
+  return c.json({
+    users,
+  });
+});
+
 /* ------------------------------------------------------ password */
 
 api.post('/users/:id/password', async (c) => {
