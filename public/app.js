@@ -104,11 +104,7 @@ async function api(path, options = {}) {
 async function boot() {
   try {
   
-     alert('กำลังตรวจสอบ /me');
-
-state.me = await api('/me');
-
-alert('ตรวจสอบ /me สำเร็จ role = ' + state.me.role);
+     state.me = await api('/me');
 
     paintUser();
 
