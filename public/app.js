@@ -1051,44 +1051,34 @@ async function scanAndOpen() {
 }
 
 async function openAdminPage() {
-
   state.tab = 'admin';
 
-  // ซ่อนทุกหน้า
-  $$('.view').forEach((v) => {
-    v.hidden = true;
-  });
+  // ซ่อน Stock App
+  $('#app').hidden = true;
 
-  // แสดงหน้า Admin
-  const adminView = $('[data-view="admin"]');
+  // แสดง Admin App
+  const adminApp = $('#adminApp');
 
-  if (!adminView) {
-    console.error('ไม่พบหน้า Admin: [data-view="admin"]');
+  if (!adminApp) {
+    console.error('ไม่พบ #adminApp');
     return;
   }
 
- adminView.hidden = false;
-   
-    // ปิดสถานะ active ของเมนูด้านล่างทั้งหมด
-  $$('.tab[data-tab]').forEach((b) => {
-    b.classList.remove('is-active');
-  });
-
-  $('#topbarSubtitle').textContent = 'จัดการผู้ใช้';
+  adminApp.hidden = false;
 
   window.scrollTo({
     top: 0,
     behavior: 'smooth',
   });
 
- try {
-  await openAdminView();
-  
-} catch (err) {
+  try {
+    await openAdminView();
+  } catch (err) {
     console.error('openAdminView ERROR:', err);
+  }
+}
+
   
-}
-}
    
 /* ----------------------------------------------------------- routing */
 
