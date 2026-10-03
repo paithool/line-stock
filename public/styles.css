@@ -490,3 +490,53 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .history-date-field input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.8;
 }
+
+/* =========================
+   ADMIN APP
+   ========================= */
+
+.admin-app {
+  min-height: 100dvh;
+  background: #f8fafc;
+  color: #111827;
+}
+
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  padding:
+    calc(16px + env(safe-area-inset-top))
+    18px
+    16px;
+
+  background: #0f172a;
+  color: #ffffff;
+
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .12);
+}
+
+.admin-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.admin-subtitle {
+  margin-top: 3px;
+  font-size: 14px;
+  opacity: .75;
+}
+
+.admin-content {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 18px;
+  box-sizing: border-box;
+
+  display: grid;
+  gap: 14px;
+  padding-bottom: 30px;
+}
+
