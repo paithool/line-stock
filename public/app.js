@@ -1249,9 +1249,10 @@ $('#loginBtn').addEventListener('click', async () => {
     $('#app').hidden = false;
 
     if (state.me.role === 'admin') {
-      // Admin เข้าหน้าจัดการผู้ใช้ทันที
-      switchTab('admin');
-    } else {
+  // Admin เข้าหน้าจัดการผู้ใช้ทันที
+  await openAdminPage();
+} else {
+       
       // ผู้ใช้ทั่วไปเข้าระบบคลังสินค้าตามปกติ
       await refreshAll();
       applyDeepLink();
