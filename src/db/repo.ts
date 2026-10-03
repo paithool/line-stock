@@ -1208,6 +1208,47 @@ export async function updateWebUserProfile(
   return user;
 }
 
+export async function updateWebUserRoleStatus(
+  db: D1Database,
+  userId: number,
+  role: string,
+  active: number,
+): Promise<WebUser> {
+  if (role !== 'user' && role !== 'admin') {
+    throw new AppError('สิทธิ์ผู้ใช้ไม่ถูกต้อง');
+  }
+
+  if (active !== 0 && active !== 1) {
+    throw new AppError('สถานะผู้ใช้ไม่ถูกต้อง');
+  }
+
+  const result = await db
+    .prepare(
+      `UPDATE web_users
+       SET role = ?,
+           active = ?
+       WHERE id = ?`,
+    )
+    .bind(
+      role,
+      active,
+      userId,
+    )
+    .run();
+
+  if (result.meta.changes !== 1) {
+    throw new AppError('ไม่สามารถแก้ไขสิทธิ์ผู้ใช้ได้');
+  }
+
+  const user = await getWebUserById(db, userId);
+
+  if (!user) {
+    throw new AppError('ไม่พบผู้ใช้');
+  }
+
+  return user;
+}
+
 export async function updateWebUserLogin(
   db: D1Database,
   id: number,
