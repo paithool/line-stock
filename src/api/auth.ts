@@ -505,6 +505,22 @@ export async function requireAuth(
   return next();
 }
 
+export async function requireAdmin(
+  c: AppContext,
+  next: Next,
+): Promise<Response | void> {
+  const user = c.get('user');
+
+  if (user.role !== 'admin') {
+    return c.json(
+      { error: 'ไม่มีสิทธิ์เข้าถึงส่วนผู้ดูแลระบบ' },
+      403,
+    );
+  }
+
+  return next();
+}
+
 /* ------------------------------------------------------ change password */
 
 /**
