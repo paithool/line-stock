@@ -153,12 +153,19 @@ function paintUser() {
   $('#userAvatar').hidden = true;
   $('#userInitial').hidden = false;
 
+  $('#currentDisplayName').textContent =
+    state.me?.name ?? '-';
+
+  $('#currentUsername').textContent =
+    state.me?.username ?? '-';
+
   $('#editDisplayName').value =
     state.me?.name ?? '';
 
   $('#editUsername').value =
     state.me?.username ?? '';
 }
+
 
 async function refreshAll() {
   const [data, products] = await Promise.all([api('/summary'), loadProducts()]);
