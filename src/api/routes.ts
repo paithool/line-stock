@@ -85,6 +85,17 @@ api.post('/users/:id/profile', async (c) => {
   ) {
     throw new AppError('รหัสผู้ใช้ไม่ถูกต้อง');
   }
+  const currentUser = c.get('user');
+
+if (
+  targetUserId !== currentUser.id &&
+  currentUser.role !== 'admin'
+) {
+  return c.json(
+    { error: 'ไม่มีสิทธิ์แก้ไขบัญชีผู้ใช้นี้' },
+    403,
+  );
+}
 
   const body = await c.req.json<{
     username?: string;
