@@ -1099,15 +1099,18 @@ export async function createWebUser(
   username: string,
   passwordHash: string,
   displayName: string,
+  role: string = 'user',
 ): Promise<WebUser> {
   const row = await db
     .prepare(
       `INSERT INTO web_users
-       (username, password_hash, display_name)
+       (username, password_hash, display_name, role)
        VALUES (?, ?, ?)
        RETURNING id, username, display_name, active, role, created_at, last_login_at`,
     )
-    .bind(username.trim(), passwordHash, displayName.trim())
+    .bind(username.trim(), passwordHash, displayName.trim(),
+          role,
+         )
     .first<WebUser>();
 
   if (!row) throw new AppError('สร้างบัญชี Admin ไม่สำเร็จ');
