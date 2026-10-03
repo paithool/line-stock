@@ -1199,13 +1199,22 @@ $('#loginBtn').addEventListener('click', async () => {
     state.me = result.user;
 
     paintUser();
-    await refreshAll();
 
     $('#loginScreen').hidden = true;
     $('#boot').hidden = true;
     $('#app').hidden = false;
 
-    applyDeepLink();
+    if (state.me.role === 'admin') {
+      // Admin เข้าหน้าจัดการผู้ใช้ทันที
+      switchTab('admin');
+    } else {
+      // ผู้ใช้ทั่วไปเข้าระบบคลังสินค้าตามปกติ
+      await refreshAll();
+      applyDeepLink();
+    }
+
+  
+     
   } catch (err) {
     $('#loginError').textContent =
       err.message || 'เข้าสู่ระบบไม่สำเร็จ';
