@@ -647,3 +647,93 @@ export async function updateWebUserProfile(
     throw err;
   }
 }
+
+/* ------------------------------------------------------ create user */
+
+/**
+ * Admin ใช้สร้างบัญชีผู้ใช้ใหม่
+ *
+ * สามารถกำหนด role เป็น user หรือ admin ได้
+ */
+export async function createWebUserByAdmin(
+  c: AppContext,
+  username: string,
+  displayName: string,
+  password: string,
+  role: string,
+): Promise<Response> {
+  const cleanUsername = username.trim();
+  const cleanDisplayName = displayName.trim();
+  const cleanRole = role.trim();
+
+  if (!cleanUsername) {
+    return c.json(
+      { error: 'กรุณาระบุชื่อผู้ใช้' },
+      400,
+    );
+  }
+
+  if (!cleanDisplayName) {
+    return c.json(
+      { error: 'กรุณาระบุชื่อที่แสดง' },
+      400,
+    );
+  }
+
+  if (!password || password.length < 6) {
+    return c.json(
+      { error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' },
+      400,
+    );
+  }
+
+  if (
+    cleanRole !== 'user' &&
+    cleanRole !== 'admin'
+  ) {
+    return c.json(
+      { error: 'สิทธิ์ผู้ใช้ไม่ถูกต้อง' },
+      400,
+    );
+  }
+
+  const existing =
+    await repo.getWebUserByUsername(
+      c.env.DB,
+      cleanUsername,
+    );
+
+  if (existing) {
+    return c.json(
+      { error: 'ชื่อผู้ใช้นี้ถูกใช้งานแล้ว' },
+      400,
+    );
+  }
+
+  const passwordHash =
+    await hashPassword(password);
+
+  const user =
+    await repo.createWebUser(
+      c.env.DB,
+      cleanUsername,
+      passwordHash,
+      cleanDisplayName,
+      cleanRole,
+    );
+
+  return c.json(
+    {
+      ok: true,
+      message: 'สร้างบัญชีผู้ใช้เรียบร้อยแล้ว',
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.display_name,
+        role: user.role,
+        active: user.active,
+      },
+    },
+    201,
+  );
+}
