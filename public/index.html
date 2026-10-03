@@ -644,6 +644,140 @@
   </nav>
 </div>
 
+  
+
+<!-- แทรก Admin Panel ตรงนี้ -->
+<div id="adminApp" class="admin-app" hidden>
+
+  <header class="admin-topbar">
+    <div>
+      <div class="admin-title">⚙️ จัดการระบบ</div>
+      <div class="admin-subtitle">ระบบจัดการผู้ใช้งาน</div>
+    </div>
+  </header>
+
+  <main class="admin-content">
+
+    <div class="card">
+      <div class="card__head">
+        <h2>ผู้ดูแลระบบ</h2>
+      </div>
+
+      <div
+        style="
+          margin-top:12px;
+          padding:12px;
+          border-radius:12px;
+          background:#f8fafc;
+          border:1px solid #e2e8f0;
+        "
+      >
+        <div style="font-size:14px;color:#64748b;margin-bottom:4px;">
+          ผู้ดูแลระบบ
+        </div>
+
+        <div
+          id="adminCurrentUser"
+          style="font-size:18px;font-weight:600;color:#111827;"
+        >
+          -
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__head">
+        <h2>สร้างบัญชีผู้ใช้</h2>
+      </div>
+
+      <label for="adminNewUsername">ชื่อผู้ใช้</label>
+      <input
+        id="adminNewUsername"
+        type="text"
+        placeholder="ชื่อผู้ใช้"
+      />
+
+      <label for="adminNewDisplayName">ชื่อที่แสดง</label>
+      <input
+        id="adminNewDisplayName"
+        type="text"
+        placeholder="ชื่อที่แสดง"
+      />
+
+      <label for="adminNewPassword">รหัสผ่าน</label>
+
+      <div style="position:relative;">
+        <input
+          id="adminNewPassword"
+          type="password"
+          placeholder="รหัสผ่านอย่างน้อย 6 ตัวอักษร"
+          style="padding-right:45px;"
+        />
+
+        <button
+          type="button"
+          class="password-toggle"
+          data-target="adminNewPassword"
+        >
+          👁️
+        </button>
+      </div>
+
+      <label for="adminNewRole">สิทธิ์ผู้ใช้</label>
+
+      <select id="adminNewRole">
+        <option value="user">ผู้ใช้ทั่วไป</option>
+        <option value="admin">ผู้ดูแลระบบ</option>
+      </select>
+
+      <button
+        class="btn btn--block"
+        id="adminCreateUserBtn"
+        type="button"
+      >
+        + สร้างบัญชีผู้ใช้
+      </button>
+
+      <div
+        id="adminCreateUserMessage"
+        style="margin-top:10px;"
+        hidden
+      ></div>
+    </div>
+
+    <div class="card">
+      <div class="card__head">
+        <h2>รายชื่อผู้ใช้</h2>
+
+        <button
+          class="link"
+          id="adminRefreshUsersBtn"
+          type="button"
+        >
+          ↻ รีเฟรช
+        </button>
+      </div>
+
+      <div
+        id="adminUserList"
+        class="list"
+        style="margin-top:12px;"
+      ></div>
+    </div>
+
+    <button
+      class="btn btn--ghost btn--block"
+      id="adminLogoutBtn"
+      type="button"
+    >
+      ออกจากระบบ
+    </button>
+
+  </main>
+</div>
+
+
+
 <div class="sheet-backdrop" id="backdrop" hidden></div>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true">
   <div class="sheet__grip"></div>
