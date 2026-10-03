@@ -1127,6 +1127,57 @@ $('#logoutBtn').addEventListener('click', async () => {
   }
 });
 
+$('#saveProfileBtn').addEventListener('click', async () => {
+  const username = $('#editUsername').value.trim();
+  const displayName = $('#editDisplayName').value.trim();
+  const message = $('#profileMessage');
+  const btn = $('#saveProfileBtn');
+
+  message.hidden = true;
+
+  if (!username || !displayName) {
+    message.textContent =
+      'กรุณากรอกชื่อที่แสดงและชื่อผู้ใช้ให้ครบ';
+    message.style.color = '#ef4444';
+    message.hidden = false;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก...';
+
+  try {
+    const result = await api(
+      `/users/${state.me.id}/profile`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          displayName,
+        }),
+      },
+    );
+
+    state.me = result.user;
+    paintUser();
+
+    message.textContent =
+      'บันทึกข้อมูลเรียบร้อยแล้ว';
+    message.style.color = '#16a34a';
+    message.hidden = false;
+
+  } catch (err) {
+    message.textContent =
+      err.message || 'บันทึกข้อมูลไม่สำเร็จ';
+    message.style.color = '#ef4444';
+    message.hidden = false;
+
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 บันทึกข้อมูล';
+  }
+});
+
 $('#changePasswordBtn').addEventListener('click', async () => {
   const newPassword = $('#newPassword').value;
   const confirmPassword = $('#confirmPassword').value;
