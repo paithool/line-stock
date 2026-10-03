@@ -1049,7 +1049,38 @@ async function scanAndOpen() {
   }
 }
 
+async function openAdminPage() {
+  state.tab = 'admin';
 
+  // ซ่อนทุกหน้า
+  $$('.view').forEach((v) => {
+    v.hidden = true;
+  });
+
+  // แสดงหน้า Admin
+  const adminView = $('[data-view="admin"]');
+
+  if (!adminView) {
+    console.error('ไม่พบหน้า Admin: [data-view="admin"]');
+    return;
+  }
+
+  adminView.hidden = false;
+
+  // ปิดสถานะ active ของเมนูด้านล่างทั้งหมด
+  $$('.tab[data-tab]').forEach((b) => {
+    b.classList.remove('is-active');
+  });
+
+  $('#topbarSubtitle').textContent = 'จัดการผู้ใช้';
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
+
+  await openAdminView();
+}
 /* ----------------------------------------------------------- routing */
 
 function switchTab(tab) {
