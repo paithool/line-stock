@@ -1562,5 +1562,5 @@ $$('.password-toggle').forEach((button) => {
   });
 });
 
-alert('กำลังเริ่ม boot()');
+
 boot();
