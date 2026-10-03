@@ -380,6 +380,7 @@ await ensureInitialAdmin(
     id: user.id,
     username: user.username,
     name: user.display_name,
+    role: user.role,
   };
 
   return c.json(
