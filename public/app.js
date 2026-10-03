@@ -103,7 +103,7 @@ async function api(path, options = {}) {
 
 async function boot() {
   try {
-  /*  state.me = await api('/me'); */
+  
      alert('กำลังตรวจสอบ /me');
 
 state.me = await api('/me');
