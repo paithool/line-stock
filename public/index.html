@@ -207,17 +207,56 @@
       <div class="card">
   <div class="card__head"><h2>บัญชีผู้ใช้</h2></div>
 
-  <div class="list">
-    <div class="row">
-      <span class="row__label">ชื่อ</span>
-      <span class="row__value" id="meName">-</span>
-    </div>
+  <div style="margin-top:12px;">
 
-    <div class="row">
-      <span class="row__label">ชื่อผู้ใช้</span>
-      <span class="row__value mono" id="meId">-</span>
-    </div>
-  </div>
+  <label style="display:block;margin-bottom:6px;">
+    ชื่อที่แสดง
+  </label>
+
+  <input
+    id="editDisplayName"
+    type="text"
+    placeholder="ชื่อที่แสดง"
+    autocomplete="name"
+    style="
+      width:100%;
+      box-sizing:border-box;
+      margin-bottom:12px;
+    "
+  />
+
+  <label style="display:block;margin-bottom:6px;">
+    ชื่อผู้ใช้
+  </label>
+
+  <input
+    id="editUsername"
+    type="text"
+    placeholder="ชื่อผู้ใช้"
+    autocomplete="username"
+    style="
+      width:100%;
+      box-sizing:border-box;
+      margin-bottom:12px;
+    "
+  />
+
+  <button
+    class="btn btn--block"
+    id="saveProfileBtn"
+    type="button"
+  >
+    💾 บันทึกข้อมูล
+  </button>
+
+  <div
+    id="profileMessage"
+    style="margin-top:10px;"
+    hidden
+  ></div>
+
+</div>
+  
         
 <!-- เปลี่ยนรหัสผ่าน -->
 <div style="margin-top:20px;">
