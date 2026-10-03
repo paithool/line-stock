@@ -1212,7 +1212,7 @@ function switchTab(tab) {
 
 /* ---------------------------------------------------------- listeners */
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
   const tab = e.target.closest('.tab[data-tab]');
   if (tab) return switchTab(tab.dataset.tab);
 
@@ -1240,6 +1240,22 @@ document.addEventListener('click', (e) => {
     const id = Number(edit.dataset.editProduct);
     return api(`/products/${id}`).then(({ product }) => openProductForm(product));
   }
+
+   const adminEdit = e.target.closest('[data-admin-edit-user]');
+if (adminEdit) {
+  const id = Number(adminEdit.dataset.adminEditUser);
+
+  const user = await api('/admin/users').then(({ users }) =>
+    users.find((u) => u.id === id)
+  );
+
+  if (!user) {
+    alert('ไม่พบผู้ใช้');
+    return;
+  }
+
+  return openAdminUserEdit(user);
+}
 
   const loc = e.target.closest('[data-location]');
   if (loc) return openLocationForm(state.locations.find((l) => l.id === Number(loc.dataset.location)));
