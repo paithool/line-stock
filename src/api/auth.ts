@@ -617,6 +617,7 @@ export async function updateWebUserProfile(
         id: updated.id,
         username: updated.username,
         name: updated.display_name,
+        role: updated.role,
       },
     });
   } catch (err) {
