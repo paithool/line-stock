@@ -1073,6 +1073,27 @@ export async function getWebUserById(
     .first<WebUser>();
 }
 
+export async function listWebUsers(
+  db: D1Database,
+): Promise<WebUser[]> {
+  const result = await db
+    .prepare(
+      `SELECT
+         id,
+         username,
+         display_name,
+         active,
+         role,
+         created_at,
+         last_login_at
+       FROM web_users
+       ORDER BY id`,
+    )
+    .all<WebUser>();
+
+  return result.results ?? [];
+}
+
 export async function createWebUser(
   db: D1Database,
   username: string,
