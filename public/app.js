@@ -1050,6 +1050,7 @@ async function scanAndOpen() {
 }
 
 async function openAdminPage() {
+   alert('openAdminPage ถูกเรียก');
   state.tab = 'admin';
 
   // ซ่อนทุกหน้า
