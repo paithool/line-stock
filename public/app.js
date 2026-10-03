@@ -1081,8 +1081,17 @@ async function openAdminPage() {
     behavior: 'smooth',
   });
 
-  await openAdminView();
+ /* await openAdminView();
 }
+
+*/
+try {
+  await openAdminView();
+} catch (err) {
+  alert('openAdminView ERROR: ' + err.message);
+}
+
+   
 /* ----------------------------------------------------------- routing */
 
 function switchTab(tab) {
