@@ -1359,6 +1359,132 @@ $('#changePasswordBtn').addEventListener('click', async () => {
 });
 
 /* ------------------------------------------------------
+   Admin — จัดการบัญชีผู้ใช้
+------------------------------------------------------ */
+
+$('#adminCreateUserBtn')?.addEventListener(
+  'click',
+  async () => {
+    const username =
+      $('#adminNewUsername').value.trim();
+
+    const displayName =
+      $('#adminNewDisplayName').value.trim();
+
+    const password =
+      $('#adminNewPassword').value;
+
+    const role =
+      $('#adminNewRole').value;
+
+    const message =
+      $('#adminCreateUserMessage');
+
+    const btn =
+      $('#adminCreateUserBtn');
+
+    message.hidden = true;
+
+    if (!username || !displayName || !password) {
+      message.textContent =
+        'กรุณากรอกข้อมูลให้ครบ';
+
+      message.style.color = '#ef4444';
+      message.hidden = false;
+      return;
+    }
+
+    if (password.length < 6) {
+      message.textContent =
+        'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+
+      message.style.color = '#ef4444';
+      message.hidden = false;
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'กำลังสร้างบัญชี...';
+
+    try {
+      await api('/admin/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          displayName,
+          password,
+          role,
+        }),
+      });
+
+      message.textContent =
+        'สร้างบัญชีผู้ใช้เรียบร้อยแล้ว';
+
+      message.style.color = '#16a34a';
+      message.hidden = false;
+
+      $('#adminNewUsername').value = '';
+      $('#adminNewDisplayName').value = '';
+      $('#adminNewPassword').value = '';
+      $('#adminNewRole').value = 'user';
+
+      await refreshAdminUsers();
+
+    } catch (err) {
+      message.textContent =
+        err.message ||
+        'สร้างบัญชีผู้ใช้ไม่สำเร็จ';
+
+      message.style.color = '#ef4444';
+      message.hidden = false;
+
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '+ สร้างบัญชีผู้ใช้';
+    }
+  }
+);
+
+
+$('#adminRefreshUsersBtn')?.addEventListener(
+  'click',
+  () => refreshAdminUsers()
+);
+
+
+$('#adminLogoutBtn')?.addEventListener(
+  'click',
+  async () => {
+    if (!confirm('ต้องการออกจากระบบหรือไม่?')) {
+      return;
+    }
+
+    try {
+      await api('/logout', {
+        method: 'POST',
+      });
+
+      state.me = null;
+
+      $('#app').hidden = true;
+      $('#loginScreen').hidden = false;
+
+      $('#loginUsername').value = '';
+      $('#loginPassword').value = '';
+      $('#loginError').hidden = true;
+
+      $('#loginUsername').focus();
+
+    } catch (err) {
+      alert(
+        err.message ||
+        'ออกจากระบบไม่สำเร็จ'
+      );
+    }
+  }
+);
+
+/* ------------------------------------------------------
    แสดง / ซ่อนรหัสผ่าน
 ------------------------------------------------------ */
 
