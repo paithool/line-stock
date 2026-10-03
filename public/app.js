@@ -1086,10 +1086,10 @@ async function openAdminPage() {
     behavior: 'smooth',
   });
 
- /* await openAdminView();
-}
+ 
 
-*/
+
+
 
 alert('กำลังเรียก openAdminView');
 
