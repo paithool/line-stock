@@ -69,6 +69,31 @@ api.post('/admin/users', requireAdmin, async (c) => {
   );
 });
 
+api.post('/admin/users/:id/role-status', requireAdmin, async (c) => {
+  const userId = Number(c.req.param('id'));
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new AppError('รหัสผู้ใช้ไม่ถูกต้อง');
+  }
+
+  const body = await c.req.json<{
+    role?: string;
+    active?: boolean | number;
+  }>();
+
+  const role = body.role ?? 'user';
+  const active = body.active ? 1 : 0;
+
+  const user = await repo.updateWebUserRoleStatus(
+    c.env.DB,
+    userId,
+    role,
+    active,
+  );
+
+  return c.json(user);
+});
+
 /* ------------------------------------------------------ password */
 
 api.post('/users/:id/password', async (c) => {
