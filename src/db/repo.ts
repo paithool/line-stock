@@ -1123,6 +1123,65 @@ export async function updateWebUserPassword(
     throw new AppError('ไม่สามารถเปลี่ยนรหัสผ่านได้');
   }
 }
+export async function updateWebUserProfile(
+  db: D1Database,
+  userId: number,
+  username: string,
+  displayName: string,
+): Promise<WebUser> {
+  const cleanUsername = username.trim();
+  const cleanDisplayName = displayName.trim();
+
+  if (!cleanUsername) {
+    throw new AppError('กรุณาระบุชื่อผู้ใช้');
+  }
+
+  if (!cleanDisplayName) {
+    throw new AppError('กรุณาระบุชื่อที่แสดง');
+  }
+
+  // ตรวจสอบชื่อผู้ใช้ซ้ำ
+  const duplicate = await db
+    .prepare(
+      `SELECT id
+       FROM web_users
+       WHERE username = ?
+         AND id != ?
+       LIMIT 1`,
+    )
+    .bind(cleanUsername, userId)
+    .first<{ id: number }>();
+
+  if (duplicate) {
+    throw new AppError('ชื่อผู้ใช้นี้ถูกใช้งานแล้ว');
+  }
+
+  const result = await db
+    .prepare(
+      `UPDATE web_users
+       SET username = ?,
+           display_name = ?
+       WHERE id = ?`,
+    )
+    .bind(
+      cleanUsername,
+      cleanDisplayName,
+      userId,
+    )
+    .run();
+
+  if (result.meta.changes !== 1) {
+    throw new AppError('ไม่สามารถแก้ไขข้อมูลผู้ใช้ได้');
+  }
+
+  const user = await getWebUserById(db, userId);
+
+  if (!user) {
+    throw new AppError('ไม่พบผู้ใช้');
+  }
+
+  return user;
+}
 
 export async function updateWebUserLogin(
   db: D1Database,
