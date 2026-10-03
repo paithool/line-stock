@@ -9,6 +9,7 @@ import {
   requireAdmin,
   changeWebUserPassword,
   updateWebUserProfile,
+  createWebUserByAdmin,
   type AuthUser,
 } from './auth';
 
