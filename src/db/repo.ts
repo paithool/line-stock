@@ -1040,6 +1040,7 @@ export interface WebUser {
   username: string;
   display_name: string;
   active: number;
+  role: string;
   created_at: string;
   last_login_at: string | null;
 }
