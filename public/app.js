@@ -100,19 +100,21 @@ async function api(path, options = {}) {
 
 
 /* --------------------------------------------------------- bootstrap */
-
-async function boot() {
-  try {
     state.me = await api('/me');
 
     paintUser();
-    await refreshAll();
 
     $('#boot').hidden = true;
     $('#loginScreen').hidden = true;
     $('#app').hidden = false;
 
-    applyDeepLink();
+    if (state.me.role === 'admin') {
+      switchTab('admin');
+    } else {
+      await refreshAll();
+      applyDeepLink();
+    }
+
   } catch (err) {
     if (err.status === 401) {
       $('#boot').hidden = true;
