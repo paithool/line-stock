@@ -1072,6 +1072,7 @@ async function openAdminPage() {
   }
 
   adminView.hidden = false;
+   adminView.style.display = 'grid';
    alert('Admin View hidden = ' + adminView.hidden);
 
   // ปิดสถานะ active ของเมนูด้านล่างทั้งหมด
