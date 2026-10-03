@@ -1084,7 +1084,7 @@ export async function createWebUser(
       `INSERT INTO web_users
        (username, password_hash, display_name)
        VALUES (?, ?, ?)
-       RETURNING id, username, display_name, active, created_at, last_login_at`,
+       RETURNING id, username, display_name, active, role, created_at, last_login_at`,
     )
     .bind(username.trim(), passwordHash, displayName.trim())
     .first<WebUser>();
