@@ -207,9 +207,20 @@
       <div class="card">
   <div class="card__head"><h2>บัญชีผู้ใช้</h2></div>
 
-  <div style="margin-top:12px;">
+  
+  <div
+  style="
+    margin-top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  "
+>
 
-  <label style="display:block;margin-bottom:6px;">
+  <label
+    for="editDisplayName"
+    style="display:block;"
+  >
     ชื่อที่แสดง
   </label>
 
@@ -221,11 +232,14 @@
     style="
       width:100%;
       box-sizing:border-box;
-      margin-bottom:12px;
+      margin:0 0 10px 0;
     "
   />
 
-  <label style="display:block;margin-bottom:6px;">
+  <label
+    for="editUsername"
+    style="display:block;"
+  >
     ชื่อผู้ใช้
   </label>
 
@@ -237,7 +251,7 @@
     style="
       width:100%;
       box-sizing:border-box;
-      margin-bottom:12px;
+      margin:0 0 10px 0;
     "
   />
 
@@ -251,12 +265,11 @@
 
   <div
     id="profileMessage"
-    style="margin-top:10px;"
+    style="margin-top:0;"
     hidden
   ></div>
 
 </div>
-  
         
 <!-- เปลี่ยนรหัสผ่าน -->
 <div style="margin-top:20px;">
