@@ -1099,7 +1099,7 @@ try {
 } catch (err) {
   alert('openAdminView ERROR: ' + err.message);
 }
-
+}
    
 /* ----------------------------------------------------------- routing */
 
