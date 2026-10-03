@@ -177,6 +177,85 @@ async function refreshAll() {
   renderSettingsLocations(data.byLocation);
 }
 
+
+/* ------------------------------------------------------ admin */
+
+async function refreshAdminUsers() {
+  const list = $('#adminUserList');
+
+  if (!list) return;
+
+  list.innerHTML = '<div class="skeleton"></div>';
+
+  try {
+    const data = await api('/admin/users');
+
+    list.innerHTML = data.users.length
+      ? data.users.map((user) => `
+          <div
+            class="item item--plain"
+            style="
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              gap:12px;
+            "
+          >
+            <div class="item__main">
+              <div class="item__name">
+                ${esc(user.display_name)}
+              </div>
+
+              <div class="item__meta">
+                <span>${esc(user.username)}</span>
+                <span>·</span>
+                <span>
+                  ${user.role === 'admin'
+                    ? 'ผู้ดูแลระบบ'
+                    : 'ผู้ใช้ทั่วไป'}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <span
+                class="badge ${
+                  Number(user.active) === 1
+                    ? 'badge--ok'
+                    : 'badge--out'
+                }"
+              >
+                ${
+                  Number(user.active) === 1
+                    ? 'ใช้งาน'
+                    : 'ปิดใช้งาน'
+                }
+              </span>
+            </div>
+          </div>
+        `).join('')
+      : '<div class="empty">ยังไม่มีบัญชีผู้ใช้</div>';
+
+  } catch (err) {
+    list.innerHTML = `
+      <div class="empty">
+        ไม่สามารถโหลดรายชื่อผู้ใช้ได้<br>
+        <small>${esc(err.message)}</small>
+      </div>
+    `;
+  }
+}
+
+
+async function openAdminView() {
+  $('#adminCurrentUser').textContent =
+    state.me
+      ? `${state.me.name} (${state.me.username})`
+      : '-';
+
+  await refreshAdminUsers();
+}
+
 async function loadProducts() {
   const p = new URLSearchParams();
   if (state.filters.q) p.set('q', state.filters.q);
