@@ -99,7 +99,10 @@ async function api(path, options = {}) {
 }
 
 
-/* --------------------------------------------------------- bootstrap */
+   /* --------------------------------------------------------- bootstrap */
+
+async function boot() {
+  try {
     state.me = await api('/me');
 
     paintUser();
@@ -126,14 +129,22 @@ async function api(path, options = {}) {
 
     $('#boot').innerHTML = `
       <div class="boot__logo">⚠️</div>
-      <div class="boot__text" style="max-width:280px;text-align:center">
+      <div
+        class="boot__text"
+        style="max-width:280px;text-align:center"
+      >
         ${esc(err.message)}
       </div>
-      <button class="btn btn--ghost" onclick="location.reload()">
+
+      <button
+        class="btn btn--ghost"
+        onclick="location.reload()"
+      >
         ลองใหม่
       </button>`;
   }
 }
+
 
 
 function applyDeepLink() {
