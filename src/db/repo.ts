@@ -131,7 +131,7 @@ export async function findLocationByKeyword(
     .prepare(
       `INSERT INTO locations
        (code, name, is_default)
-       VALUES (?, ?, ?)
+       VALUES (?, ?, ?, ?)
        RETURNING *`,
     )
     .bind(
