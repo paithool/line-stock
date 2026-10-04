@@ -1705,6 +1705,7 @@ $('#adminLogoutBtn')?.addEventListener(
       state.me = null;
 
       $('#app').hidden = true;
+       $('#adminApp').hidden = true;
       $('#loginScreen').hidden = false;
 
       $('#loginUsername').value = '';
