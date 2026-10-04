@@ -135,10 +135,11 @@ export async function findLocationByKeyword(
        RETURNING *`,
     )
     .bind(
-      newCode,
-      newName,
-      isDefault ? 1 : 0,
-    )
+  storeId,
+  newCode,
+  newName,
+  isDefault ? 1 : 0,
+)
     .first<Location>();
 
   if (!row) {
