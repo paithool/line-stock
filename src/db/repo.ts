@@ -1130,7 +1130,7 @@ export async function getWebUserPasswordHash(
        WHERE username = ?`,
     )
     .bind(username.trim())
-    .first<{ id: number; password_hash: string; active: number }>();
+    .first<{ id: number; password_hash: string; active: number; store_id: number; }>();
 }
 export async function updateWebUserPassword(
   db: D1Database,
