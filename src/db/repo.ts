@@ -1124,7 +1124,7 @@ export async function getWebUserPasswordHash(
 ): Promise<{ id: number; password_hash: string; active: number } | null> {
   return db
     .prepare(
-      `SELECT id, password_hash, active
+      `SELECT id, password_hash, active, store_id
        FROM web_users
        WHERE username = ?`,
     )
