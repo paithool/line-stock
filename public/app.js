@@ -350,6 +350,10 @@ async function refreshAdminUsers() {
     behavior: 'smooth',
     block: 'start',
   });
+       $('#adminCancelEditBtn').addEventListener('click', () => {
+  editBox.hidden = true;
+  form.innerHTML = '';
+});    
 }
 
       
