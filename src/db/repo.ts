@@ -1041,6 +1041,7 @@ export interface WebUser {
   display_name: string;
   active: number;
   role: string;
+  store_id: number;
   created_at: string;
   last_login_at: string | null;
 }
