@@ -1433,8 +1433,6 @@ $('#loginBtn').addEventListener('click', async () => {
 
     state.me = result.user;
      
-alert(JSON.stringify(result.user));
-
     paintUser();
 
     $('#loginScreen').hidden = true;
