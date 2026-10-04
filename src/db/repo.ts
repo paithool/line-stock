@@ -1052,7 +1052,7 @@ export async function getWebUserByUsername(
 ): Promise<WebUser | null> {
   return db
     .prepare(
-      `SELECT id, username, display_name, active, role, created_at, last_login_at
+      `SELECT id, username, display_name, active, role, store_id, created_at, last_login_at
        FROM web_users
        WHERE username = ?`,
     )
