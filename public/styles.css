@@ -540,3 +540,57 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   padding-bottom: 30px;
 }
 
+/* =========================
+   ADMIN USER EDIT FORM
+   ========================= */
+
+#adminUserEditForm {
+  display: grid;
+  gap: 10px;
+}
+
+#adminUserEditForm label {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+#adminUserEditForm input,
+#adminUserEditForm select {
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 0 14px;
+
+  font-family: inherit;
+  font-size: 16px;
+
+  color: #111827;
+  background: #ffffff;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+}
+
+#adminUserEditForm input:focus,
+#adminUserEditForm select:focus {
+  outline: none;
+  border-color: #64748b;
+}
+
+#adminUserEditForm > div[style*="display:flex"] {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px !important;
+  margin-top: 8px !important;
+}
+
+#adminUserEditForm > div[style*="display:flex"] .btn {
+  min-height: 48px;
+  margin: 0;
+}
+
