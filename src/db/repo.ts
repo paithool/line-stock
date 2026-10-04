@@ -7,9 +7,24 @@ import { AppError, makeRef, norm } from '../lib/util';
 
 /* -------------------------------------------------------------- locations */
 
-export async function listLocations(db: D1Database, activeOnly = true): Promise<Location[]> {
-  const sql = `SELECT * FROM locations ${activeOnly ? 'WHERE active = 1' : ''} ORDER BY is_default DESC, code`;
-  const { results } = await db.prepare(sql).all<Location>();
+export async function listLocations(
+  db: D1Database,
+  storeId: number,
+  activeOnly = true,
+): Promise<Location[]> {
+  const sql = `
+    SELECT *
+    FROM locations
+    WHERE store_id = ?
+      ${activeOnly ? 'AND active = 1' : ''}
+    ORDER BY is_default DESC, code
+  `;
+
+  const { results } = await db
+    .prepare(sql)
+    .bind(storeId)
+    .all<Location>();
+
   return results ?? [];
 }
 
