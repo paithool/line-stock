@@ -203,7 +203,13 @@ async function refreshAdminUsers() {
 
   try {
     const data = await api('/admin/users');
-
+     
+data.users.sort((a, b) =>
+  a.display_name.localeCompare(
+    b.display_name,
+    'th'
+  )
+);
     list.innerHTML = data.users.length
       ? data.users.map((user) => `
           <div
