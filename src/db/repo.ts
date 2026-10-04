@@ -28,8 +28,20 @@ export async function listLocations(
   return results ?? [];
 }
 
-export async function getLocation(db: D1Database, id: number): Promise<Location | null> {
-  return db.prepare('SELECT * FROM locations WHERE id = ?').bind(id).first<Location>();
+export async function getLocation(
+  db: D1Database,
+  storeId: number,
+  id: number,
+): Promise<Location | null> {
+  return db
+    .prepare(`
+      SELECT *
+      FROM locations
+      WHERE id = ?
+        AND store_id = ?
+    `)
+    .bind(id, storeId)
+    .first<Location>();
 }
 
 export async function defaultLocation(
