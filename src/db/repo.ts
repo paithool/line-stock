@@ -32,9 +32,20 @@ export async function getLocation(db: D1Database, id: number): Promise<Location 
   return db.prepare('SELECT * FROM locations WHERE id = ?').bind(id).first<Location>();
 }
 
-export async function defaultLocation(db: D1Database): Promise<Location | null> {
+export async function defaultLocation(
+  db: D1Database,
+  storeId: number,
+): Promise<Location | null> {
   return db
-    .prepare('SELECT * FROM locations WHERE active = 1 ORDER BY is_default DESC, id LIMIT 1')
+    .prepare(`
+      SELECT *
+      FROM locations
+      WHERE store_id = ?
+        AND active = 1
+      ORDER BY is_default DESC, id
+      LIMIT 1
+    `)
+    .bind(storeId)
     .first<Location>();
 }
 
