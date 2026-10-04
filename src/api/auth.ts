@@ -9,6 +9,7 @@ export interface AuthUser {
   username: string;
   name: string;
   role: string;
+  store_id: number;
 }
 
 const SESSION_COOKIE = 'web_session';
