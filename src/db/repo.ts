@@ -78,6 +78,7 @@ export async function findLocationByKeyword(
 }
  export async function createLocation(
   db: D1Database,
+   storeId: number,
   code: string,
   name: string,
   isDefault = false,
