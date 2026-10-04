@@ -390,6 +390,7 @@ if (account.active !== 1) {
     username: user.username,
     name: user.display_name,
     role: user.role,
+    store_id: user.store_id,
   };
 
   return c.json(
