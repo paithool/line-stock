@@ -220,16 +220,17 @@ export async function findLocationByKeyword(
   // ตรวจสอบชื่อคลังซ้ำ
   // ตรวจเฉพาะคลังที่ยัง active = 1
   const dupName = await db
-    .prepare(
-      `SELECT id
-       FROM locations
-       WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
-         AND id != ?
-         AND active = 1
-       LIMIT 1`,
-    )
-    .bind(nextName, id)
-    .first();
+  .prepare(
+    `SELECT id
+     FROM locations
+     WHERE store_id = ?
+       AND LOWER(TRIM(name)) = LOWER(TRIM(?))
+       AND id != ?
+       AND active = 1
+     LIMIT 1`,
+  )
+  .bind(storeId, nextName, id)
+  .first();
 
   if (dupName) {
     throw new AppError(`ชื่อคลัง "${nextName}" ถูกใช้งานแล้ว`);
