@@ -337,24 +337,24 @@ await ensureInitialAdmin(
   );
 }
 
+const passwordOk = await verifyPassword(
+  password,
+  account.password_hash,
+);
+
+if (!passwordOk) {
+  return c.json(
+    { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' },
+    401,
+  );
+}
+
 if (account.active !== 1) {
   return c.json(
     { error: 'บัญชีผู้ใช้นี้ถูกปิดใช้งาน' },
     403,
   );
 }
-
-  const passwordOk = await verifyPassword(
-    password,
-    account.password_hash,
-  );
-
-  if (!passwordOk) {
-    return c.json(
-      { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' },
-      401,
-    );
-  }
 
   const user = await repo.getWebUserById(
     c.env.DB,
