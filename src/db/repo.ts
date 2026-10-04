@@ -39,10 +39,14 @@ export async function defaultLocation(db: D1Database): Promise<Location | null> 
 }
 
 /** หาคลังจากคำที่ผู้ใช้พิมพ์ เช่น "MAIN" หรือ "คลังกลาง" หรือ "หน้าร้าน" */
-export async function findLocationByKeyword(db: D1Database, keyword: string): Promise<Location | null> {
+export async function findLocationByKeyword(
+  db: D1Database,
+  storeId: number,
+  keyword: string,
+): Promise<Location | null> {
   const k = norm(keyword);
   if (!k) return null;
-  const all = await listLocations(db, true);
+  const all = await listLocations(db, storeId, true);
   return (
     all.find((l) => norm(l.code) === k || norm(l.name) === k) ??
     all.find((l) => norm(l.name).includes(k) || norm(l.code).includes(k)) ??
