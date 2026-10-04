@@ -237,22 +237,24 @@ export async function findLocationByKeyword(
   }
 
   await db
-    .prepare(
-      `UPDATE locations
-       SET code = ?,
-           name = ?,
-           is_default = ?,
-           active = ?
-       WHERE id = ?`,
-    )
-    .bind(
-      nextCode,
-      nextName,
-      nextDefault ? 1 : 0,
-      nextActive ? 1 : 0,
-      id,
-    )
-    .run();
+  .prepare(
+    `UPDATE locations
+     SET code = ?,
+         name = ?,
+         is_default = ?,
+         active = ?
+     WHERE id = ?
+       AND store_id = ?`,
+  )
+  .bind(
+    nextCode,
+    nextName,
+    nextDefault ? 1 : 0,
+    nextActive ? 1 : 0,
+    id,
+    storeId,
+  )
+  .run();
 
   // ถ้าตั้งเป็นคลังหลัก
   // ให้ยกเลิกคลังหลักอื่น
