@@ -149,13 +149,16 @@ export async function findLocationByKeyword(
   }
 
   if (isDefault) {
-    await db
-      .prepare(
-        'UPDATE locations SET is_default = 0 WHERE id != ?',
-      )
-      .bind(row.id)
-      .run();
-  }
+  await db
+    .prepare(
+      `UPDATE locations
+       SET is_default = 0
+       WHERE store_id = ?
+         AND id != ?`,
+    )
+    .bind(storeId, row.id)
+    .run();
+}
 
   return row;
  }
