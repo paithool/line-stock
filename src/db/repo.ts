@@ -1122,7 +1122,7 @@ export async function createWebUser(
 export async function getWebUserPasswordHash(
   db: D1Database,
   username: string,
-): Promise<{ id: number; password_hash: string; active: number } | null> {
+): Promise<{ id: number; password_hash: string; active: number; store_id: number; } | null> {
   return db
     .prepare(
       `SELECT id, password_hash, active, store_id
