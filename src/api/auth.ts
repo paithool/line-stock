@@ -330,12 +330,19 @@ await ensureInitialAdmin(
       cleanUsername,
     );
 
-  if (!account || account.active !== 1) {
-    return c.json(
-      { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' },
-      401,
-    );
-  }
+  if (!account) {
+  return c.json(
+    { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' },
+    401,
+  );
+}
+
+if (account.active !== 1) {
+  return c.json(
+    { error: 'บัญชีผู้ใช้นี้ถูกปิดใช้งาน' },
+    403,
+  );
+}
 
   const passwordOk = await verifyPassword(
     password,
