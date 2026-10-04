@@ -354,6 +354,77 @@ async function refreshAdminUsers() {
   editBox.hidden = true;
   form.innerHTML = '';
 });    
+        $('#adminSaveEditBtn').addEventListener('click', async () => {
+  const username = $('#adminEditUsername').value.trim();
+  const displayName = $('#adminEditDisplayName').value.trim();
+  const role = $('#adminEditRole').value;
+  const active = Number($('#adminEditActive').value);
+  const password = $('#adminEditPassword').value;
+
+  const message = $('#adminEditMessage');
+  const btn = $('#adminSaveEditBtn');
+
+  message.hidden = true;
+
+  if (!username || !displayName) {
+    message.textContent = 'กรุณากรอกชื่อผู้ใช้และชื่อที่แสดง';
+    message.style.color = '#ef4444';
+    message.hidden = false;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก...';
+
+  try {
+    await api(`/users/${user.id}/profile`, {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        displayName,
+      }),
+    });
+
+    await api(`/admin/users/${user.id}/role-status`, {
+      method: 'POST',
+      body: JSON.stringify({
+        role,
+        active,
+      }),
+    });
+
+    if (password) {
+      await api(`/users/${user.id}/password`, {
+        method: 'POST',
+        body: JSON.stringify({
+          newPassword: password,
+        }),
+      });
+    }
+
+    message.textContent = 'บันทึกข้อมูลเรียบร้อยแล้ว';
+    message.style.color = '#16a34a';
+    message.hidden = false;
+
+    await refreshAdminUsers();
+
+    setTimeout(() => {
+      editBox.hidden = true;
+      form.innerHTML = '';
+    }, 700);
+
+  } catch (err) {
+    message.textContent =
+      err.message || 'บันทึกข้อมูลไม่สำเร็จ';
+
+    message.style.color = '#ef4444';
+    message.hidden = false;
+
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'บันทึก';
+  }
+});   
 }
 
       
