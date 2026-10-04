@@ -628,7 +628,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 
 #adminUserList .item--plain > div:last-child {
   display: flex !important;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
   gap: 8px;
   flex-shrink: 0;
@@ -640,3 +640,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   white-space: nowrap;
 }
 
+#adminUserList .item--plain .item__name,
+#adminUserList .item--plain > div:last-child {
+  margin-top: 0;
+}
