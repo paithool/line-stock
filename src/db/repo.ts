@@ -201,16 +201,17 @@ export async function findLocationByKeyword(
   // ตรวจสอบรหัสคลังซ้ำ
   // ตรวจเฉพาะคลังที่ยัง active = 1
   const dupCode = await db
-    .prepare(
-      `SELECT id
-       FROM locations
-       WHERE UPPER(TRIM(code)) = UPPER(TRIM(?))
-         AND id != ?
-         AND active = 1
-       LIMIT 1`,
-    )
-    .bind(nextCode, id)
-    .first();
+  .prepare(
+    `SELECT id
+     FROM locations
+     WHERE store_id = ?
+       AND UPPER(TRIM(code)) = UPPER(TRIM(?))
+       AND id != ?
+       AND active = 1
+     LIMIT 1`,
+  )
+  .bind(storeId, nextCode, id)
+  .first();
 
   if (dupCode) {
     throw new AppError(`รหัสคลัง ${nextCode} ถูกใช้งานแล้ว`);
