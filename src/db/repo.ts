@@ -1085,6 +1085,7 @@ export async function listWebUsers(
          display_name,
          active,
          role,
+         store_id,
          created_at,
          last_login_at
        FROM web_users
