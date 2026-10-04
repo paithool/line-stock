@@ -165,11 +165,12 @@ export async function findLocationByKeyword(
   
   export async function updateLocation(
   db: D1Database,
+  storeId: number,
   id: number,
   patch: Partial<Location>,
 ): Promise<Location | null> {
 
-  const current = await getLocation(db, id);
+  const current = await getLocation(db, storeId, id);
 
   if (!current) {
     throw new AppError('ไม่พบคลังที่ต้องการแก้ไข', 404);
