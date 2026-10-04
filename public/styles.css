@@ -594,3 +594,49 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   margin: 0;
 }
 
+/* =========================
+   ADMIN USER LIST
+   ========================= */
+
+#adminUserList .item--plain {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#adminUserList .item__main {
+  min-width: 0;
+}
+
+#adminUserList .item__name {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+#adminUserList .item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+#adminUserList .item--plain > div:last-child {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#adminUserList .item--plain .btn {
+  min-height: 42px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
