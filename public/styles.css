@@ -601,7 +601,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 #adminUserList .item--plain {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
-  align-items: center;
+  align-items: start;
   gap: 14px;
   width: 100%;
   box-sizing: border-box;
