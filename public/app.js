@@ -267,86 +267,98 @@ async function refreshAdminUsers() {
   }
 }
 
-function openAdminUserEdit(user) {
-  const list = $('#adminUserList');
 
-  if (!list) return;
+        function openAdminUserEdit(user) {
+  const editBox = $('#adminUserEdit');
+  const form = $('#adminUserEditForm');
 
-  list.innerHTML = `
-    <div class="card">
-      <div class="card__head">
-        <h2>แก้ไขผู้ใช้</h2>
-      </div>
+  if (!editBox || !form) return;
 
-      <label for="adminEditUsername">ชื่อผู้ใช้</label>
-      <input
-        id="adminEditUsername"
-        type="text"
-        value="${esc(user.username)}"
+  form.innerHTML = `
+    <label for="adminEditUsername">ชื่อผู้ใช้</label>
+    <input
+      id="adminEditUsername"
+      type="text"
+      value="${esc(user.username)}"
+    >
+
+    <label for="adminEditDisplayName">ชื่อที่แสดง</label>
+    <input
+      id="adminEditDisplayName"
+      type="text"
+      value="${esc(user.display_name)}"
+    >
+
+    <label for="adminEditRole">สิทธิ์ผู้ใช้</label>
+    <select id="adminEditRole">
+      <option value="user" ${user.role === 'user' ? 'selected' : ''}>
+        ผู้ใช้ทั่วไป
+      </option>
+      <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>
+        ผู้ดูแลระบบ
+      </option>
+    </select>
+
+    <label for="adminEditActive">สถานะ</label>
+    <select id="adminEditActive">
+      <option value="1" ${Number(user.active) === 1 ? 'selected' : ''}>
+        ใช้งาน
+      </option>
+      <option value="0" ${Number(user.active) === 0 ? 'selected' : ''}>
+        ปิดใช้งาน
+      </option>
+    </select>
+
+    <label for="adminEditPassword">
+      รหัสผ่านใหม่
+    </label>
+
+    <input
+      id="adminEditPassword"
+      type="password"
+      placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
+    >
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button
+        class="btn btn--block"
+        type="button"
+        id="adminSaveEditBtn"
       >
+        บันทึก
+      </button>
 
-      <label for="adminEditDisplayName">ชื่อที่แสดง</label>
-      <input
-        id="adminEditDisplayName"
-        type="text"
-        value="${esc(user.display_name)}"
+      <button
+        class="btn btn--ghost btn--block"
+        type="button"
+        id="adminCancelEditBtn"
       >
-
-      <label for="adminEditRole">สิทธิ์ผู้ใช้</label>
-      <select id="adminEditRole">
-        <option value="user" ${user.role === 'user' ? 'selected' : ''}>
-          ผู้ใช้ทั่วไป
-        </option>
-        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>
-          ผู้ดูแลระบบ
-        </option>
-      </select>
-
-      <label for="adminEditActive">สถานะ</label>
-      <select id="adminEditActive">
-        <option value="1" ${Number(user.active) === 1 ? 'selected' : ''}>
-          ใช้งาน
-        </option>
-        <option value="0" ${Number(user.active) === 0 ? 'selected' : ''}>
-          ปิดใช้งาน
-        </option>
-      </select>
-
-      <label for="adminEditPassword">
-        รหัสผ่านใหม่
-      </label>
-      <input
-        id="adminEditPassword"
-        type="password"
-        placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
-      >
-
-      <div style="display:flex;gap:10px;margin-top:16px;">
-        <button
-          class="btn btn--block"
-          type="button"
-          id="adminSaveEditBtn"
-        >
-          บันทึก
-        </button>
-
-        <button
-          class="btn btn--ghost btn--block"
-          type="button"
-          id="adminCancelEditBtn"
-        >
-          ยกเลิก
-        </button>
-      </div>
-
-      <div
-        id="adminEditMessage"
-        style="margin-top:10px;"
-        hidden
-      ></div>
+        ยกเลิก
+      </button>
     </div>
+
+    <div
+      id="adminEditMessage"
+      style="margin-top:10px;"
+      hidden
+    ></div>
   `;
+
+  editBox.hidden = false;
+
+  editBox.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  });
 }
+
+      
+
+      
+
+      
+        
+  
 
 async function openAdminView() {
   $('#adminCurrentUser').textContent =
