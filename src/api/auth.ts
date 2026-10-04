@@ -611,12 +611,6 @@ export async function updateWebUserProfile(
     );
   }
 
-  if (user.active !== 1) {
-    return c.json(
-      { error: 'บัญชีผู้ใช้นี้ถูกปิดใช้งาน' },
-      400,
-    );
-  }
 
   try {
     const updated =
