@@ -957,10 +957,10 @@ export async function adjust(
       .first<{ qty: number }>();
     if (row) {
       await logMovement(db, {
-        ref, type: 'adjust', productId, locationId, qty: Math.abs(delta), delta,
+        storeId, ref, type: 'adjust', productId, locationId, qty: Math.abs(delta), delta,
         balanceAfter: row.qty, note, actor,
       });
-      return { ref, balanceAfter: row.qty, total: await totalQty(db, productId) };
+      return { ref, balanceAfter: row.qty, total: await totalQty(db, storeId, productId) };
     }
   }
   throw new AppError('ปรับยอดไม่สำเร็จ มีการแก้ไขสต๊อกพร้อมกัน กรุณาลองใหม่');
