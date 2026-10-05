@@ -679,12 +679,13 @@ VALUES (?, ?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?)
   statements.push(
     db
       .prepare(
-        `UPDATE products
-         SET active = 0,
-             updated_at = datetime('now')
-         WHERE id = ?`,
+        UPDATE products
+SET active = 0,
+    updated_at = datetime('now')
+WHERE id = ?
+  AND store_id = ?
       )
-      .bind(id),
+      .bind(id, storeId)
   );
 
   // ทำทั้งหมดเป็นชุดเดียว
