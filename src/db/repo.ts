@@ -403,7 +403,11 @@ const where: string[] = [
 
   const sql = `
     SELECT p.*, ${qtyExpr} AS total_qty,
-           (SELECT COUNT(*) FROM stock_levels s WHERE s.product_id = p.id AND s.qty > 0) AS location_count
+           (SELECT COUNT(*)
+ FROM stock_levels s
+ WHERE s.product_id = p.id
+   AND s.store_id = p.store_id
+   AND s.qty > 0) AS location_count
     FROM products p
     WHERE ${where.join(' AND ')}
     GROUP BY p.id
