@@ -553,7 +553,16 @@ export async function updateProduct(
   }
   const barcode = patch.barcode !== undefined ? patch.barcode?.trim() || null : current.barcode;
   if (barcode && barcode !== current.barcode) {
-    const dup = await db.prepare('SELECT id FROM products WHERE barcode = ? AND id != ?').bind(barcode, id).first();
+    const dup = await db
+  .prepare(
+    `SELECT id
+     FROM products
+     WHERE store_id = ?
+       AND barcode = ?
+       AND id != ?`,
+  )
+  .bind(storeId, barcode, id)
+  .first();
     if (dup) throw new AppError(`บาร์โค้ด ${barcode} ถูกใช้ไปแล้ว`);
   }
   await db
