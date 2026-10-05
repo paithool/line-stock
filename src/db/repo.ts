@@ -320,10 +320,18 @@ export interface ProductWithStock extends Product {
   location_count: number;
 }
 
-export async function searchProducts(db: D1Database, query: string, limit = 20): Promise<ProductWithStock[]> {
+export async function searchProducts(
+  db: D1Database,
+  storeId: number,
+  query: string,
+  limit = 20,
+): Promise<ProductWithStock[]> {
   const terms = norm(query).split(' ').filter(Boolean).slice(0, 5);
-  const where: string[] = ['p.active = 1'];
-  const binds: unknown[] = [];
+  const where: string[] = [
+  'p.active = 1',
+  'p.store_id = ?',
+];
+  const binds: unknown[] = [storeId];
   for (const t of terms) {
     where.push('(LOWER(p.name) LIKE ? OR LOWER(p.sku) LIKE ? OR LOWER(p.category) LIKE ? OR p.barcode = ?)');
     binds.push(`%${t}%`, `%${t}%`, `%${t}%`, t);
