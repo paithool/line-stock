@@ -277,7 +277,11 @@ export async function findLocationByKeyword(
   
 
 
-export async function deleteLocation(db: D1Database, id: number): Promise<void> {
+export async function deleteLocation(
+  db: D1Database,
+  storeId: number,
+  id: number,
+): Promise<void> {
   const used = await db
     .prepare(`
       SELECT COUNT(*) AS c
