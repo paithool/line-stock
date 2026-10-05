@@ -338,8 +338,18 @@ export async function searchProducts(
   }
   const sql = `
     SELECT p.*,
-           COALESCE((SELECT SUM(qty) FROM stock_levels s WHERE s.product_id = p.id), 0) AS total_qty,
-           (SELECT COUNT(*) FROM stock_levels s WHERE s.product_id = p.id AND s.qty > 0) AS location_count
+           COALESCE(
+  (SELECT SUM(qty)
+   FROM stock_levels s
+   WHERE s.product_id = p.id
+     AND s.store_id = p.store_id),
+  0
+) AS total_qty,
+           (SELECT COUNT(*)
+ FROM stock_levels s
+ WHERE s.product_id = p.id
+   AND s.store_id = p.store_id
+   AND s.qty > 0) AS location_count,
     FROM products p
     WHERE ${where.join(' AND ')}
     ORDER BY
