@@ -270,7 +270,7 @@ export async function findLocationByKeyword(
     .run();
 }
 
-  return getLocation(db, id);
+  return getLocation(db, storeId, id);
 }
   
   
