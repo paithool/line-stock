@@ -46,6 +46,44 @@ export async function listStores(
   return results ?? [];
 }
 
+export async function createStore(
+  db: D1Database,
+  code: string,
+  name: string,
+): Promise<Store> {
+  const cleanCode = code.trim();
+  const cleanName = name.trim();
+
+  if (!cleanCode || !cleanName) {
+    throw new Error('กรุณาระบุรหัสร้านและชื่อร้าน');
+  }
+
+  const result = await db
+    .prepare(
+      `
+      INSERT INTO stores (
+        code,
+        name
+      )
+      VALUES (?, ?)
+      RETURNING
+        id,
+        code,
+        name,
+        active,
+        created_at
+      `,
+    )
+    .bind(cleanCode, cleanName)
+    .first<Store>();
+
+  if (!result) {
+    throw new Error('ไม่สามารถสร้างร้านได้');
+  }
+
+  return result;
+}
+
 /* -------------------------------------------------------------- locations */
 
 export async function listLocations(
