@@ -645,22 +645,24 @@ WHERE product_id = ?
     statements.push(
       db
   .prepare(
-    `INSERT INTO movements
-     (
-       ref,
-       type,
-       product_id,
-       location_id,
-       qty,
-       delta,
-       balance_after,
-       note,
-       actor_name,
-       source
-     )
-     VALUES (?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?)`,
+    INSERT INTO movements
+(
+  store_id,
+  ref,
+  type,
+  product_id,
+  location_id,
+  qty,
+  delta,
+  balance_after,
+  note,
+  actor_name,
+  source
+)
+VALUES (?, ?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?)
   )
   .bind(
+    storeId,
     ref,
     id,
     row.location_id,
