@@ -946,14 +946,14 @@ export async function adjust(
 
   let delta = 0;
   for (let attempt = 0; attempt < 3; attempt++) {
-    const current = await getQty(db, productId, locationId);
+    const current = await getQty(db, storeId, productId, locationId);
     delta = targetQty - current;
     const row = await db
       .prepare(
-        `UPDATE stock_levels SET qty = ?, updated_at = datetime('now')
-         WHERE product_id = ? AND location_id = ? AND qty = ? RETURNING qty`,
+         `UPDATE stock_levels SET qty = ?, updated_at = datetime('now')
+ WHERE store_id = ? AND product_id = ? AND location_id = ? AND qty = ? RETURNING qty`,
       )
-      .bind(targetQty, productId, locationId, current)
+      .bind(targetQty, storeId, productId, locationId, current)
       .first<{ qty: number }>();
     if (row) {
       await logMovement(db, {
