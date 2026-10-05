@@ -568,7 +568,9 @@ export async function updateProduct(
   await db
     .prepare(
       `UPDATE products SET sku = ?, barcode = ?, name = ?, category = ?, unit = ?, min_qty = ?, note = ?, active = ?,
-         updated_at = datetime('now') WHERE id = ?`,
+         updated_at = datetime('now')
+WHERE id = ?
+  AND store_id = ?`,
     )
     .bind(
       sku,
@@ -579,7 +581,9 @@ export async function updateProduct(
       Number(patch.min_qty ?? current.min_qty),
       patch.note !== undefined ? patch.note?.trim() || null : current.note,
       patch.active ?? current.active,
-      id,
+id,
+storeId,
+    
     )
     .run();
   return getProduct(db, id);
