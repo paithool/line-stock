@@ -283,16 +283,18 @@ export async function deleteLocation(
   id: number,
 ): Promise<void> {
   const used = await db
-    .prepare(`
-      SELECT COUNT(*) AS c
-      FROM stock_levels s
-      INNER JOIN products p ON p.id = s.product_id
-      WHERE s.location_id = ?
-        AND p.active = 1
-        AND ABS(s.qty) > 0.000001
-    `)
-    .bind(id)
-    .first<{ c: number }>();
+  .prepare(`
+    SELECT COUNT(*) AS c
+    FROM stock_levels s
+    INNER JOIN products p ON p.id = s.product_id
+    WHERE s.location_id = ?
+      AND s.store_id = ?
+      AND p.store_id = ?
+      AND p.active = 1
+      AND ABS(s.qty) > 0.000001
+  `)
+  .bind(id, storeId, storeId)
+  .first<{ c: number }>();
 
   if ((used?.c ?? 0) > 0) {
     throw new AppError(
