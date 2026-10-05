@@ -970,6 +970,7 @@ export async function adjust(
 /** ย้ายระหว่างคลัง */
 export async function transfer(
   db: D1Database,
+  storeId: number,
   productId: number,
   fromId: number,
   toId: number,
@@ -988,9 +989,13 @@ export async function transfer(
   // ตรวจสอบสินค้า
   const product = await db
     .prepare(
-      'SELECT id FROM products WHERE id = ? AND active = 1',
+      `SELECT id
+ FROM products
+ WHERE id = ?
+   AND store_id = ?
+   AND active = 1`,
     )
-    .bind(productId)
+    .bind(productId, storeId)
     .first();
 
   if (!product) {
@@ -1000,9 +1005,13 @@ export async function transfer(
   // ตรวจสอบคลังต้นทาง
   const fromLocation = await db
     .prepare(
-      'SELECT id FROM locations WHERE id = ? AND active = 1',
+      `SELECT id
+ FROM locations
+ WHERE id = ?
+   AND store_id = ?
+   AND active = 1`,
     )
-    .bind(fromId)
+    .bind(fromId, storeId)
     .first();
 
   if (!fromLocation) {
