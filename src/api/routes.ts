@@ -67,29 +67,18 @@ api.post('/admin/stores', requireAdmin, async (c) => {
     );
   }
 
-  const result = await c.env.DB
-    .prepare(
-      `
-      INSERT INTO stores (
-        code,
-        name
-      )
-      VALUES (?, ?)
-      `,
-    )
-    .bind(code, name)
-    .run();
+  const store = await repo.createStore(
+  c.env.DB,
+  code,
+  name,
+);
 
-  return c.json(
-    {
-      id: result.meta.last_row_id,
-      code,
-      name,
-      active: 1,
-    },
-    201,
-  );
-});
+return c.json(
+  {
+    store,
+  },
+  201,
+);
 
 api.get('/admin/users', requireAdmin, async (c) => {
   const users = await repo.listWebUsers(c.env.DB);
