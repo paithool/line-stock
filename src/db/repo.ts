@@ -457,7 +457,11 @@ export async function getProductByBarcode(
   .first<Product>();
 }
 
-export async function createProduct(db: D1Database, input: Partial<Product>): Promise<Product> {
+export async function createProduct(
+  db: D1Database,
+  storeId: number,
+  input: Partial<Product>,
+): Promise<Product> {
   if (!input.name?.trim()) throw new AppError('กรุณาระบุชื่อสินค้า');
   const sku = input.sku?.trim() || (await nextSku(db));
   const dup = await db.prepare('SELECT id FROM products WHERE sku = ?').bind(sku).first();
