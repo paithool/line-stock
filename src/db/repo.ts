@@ -679,7 +679,7 @@ VALUES (?, ?, 'archive', ?, ?, ?, ?, 0, ?, ?, ?)
   statements.push(
     db
       .prepare(
-        UPDATE products
+        `UPDATE products
 SET active = 0,
     updated_at = datetime('now')
 WHERE id = ?
