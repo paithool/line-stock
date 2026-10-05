@@ -475,7 +475,18 @@ export async function createProduct(
   .first();
   if (dup) throw new AppError(`รหัสสินค้า ${sku} ถูกใช้ไปแล้ว`);
   if (input.barcode?.trim()) {
-    const dupBc = await db.prepare('SELECT id FROM products WHERE barcode = ?').bind(input.barcode.trim()).first();
+    const dupBc = await db
+  .prepare(
+    `SELECT id
+     FROM products
+     WHERE store_id = ?
+       AND barcode = ?`,
+  )
+  .bind(
+    storeId,
+    input.barcode.trim(),
+  )
+  .first();
     if (dupBc) throw new AppError(`บาร์โค้ด ${input.barcode.trim()} ถูกใช้ไปแล้ว`);
   }
   const row = await db
