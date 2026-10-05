@@ -436,11 +436,25 @@ export async function getProduct(
   .first<Product>();
 }
 
-export async function getProductByBarcode(db: D1Database, barcode: string): Promise<Product | null> {
+export async function getProductByBarcode(
+  db: D1Database,
+  storeId: number,
+  barcode: string,
+): Promise<Product | null> {
   return db
-    .prepare('SELECT * FROM products WHERE (barcode = ? OR sku = ?) AND active = 1')
-    .bind(barcode.trim(), barcode.trim())
-    .first<Product>();
+  .prepare(
+    `SELECT *
+     FROM products
+     WHERE (barcode = ? OR sku = ?)
+       AND active = 1
+       AND store_id = ?`,
+  )
+  .bind(
+    barcode.trim(),
+    barcode.trim(),
+    storeId,
+  )
+  .first<Product>();
 }
 
 export async function createProduct(db: D1Database, input: Partial<Product>): Promise<Product> {
