@@ -491,8 +491,10 @@ export async function createProduct(
   }
   const row = await db
     .prepare(
-      `INSERT INTO products (sku, barcode, name, category, unit, min_qty, note)
-       VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+      `INSERT INTO products
+ (store_id, sku, barcode, name, category, unit, min_qty, note)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+       
     )
     .bind(
       sku,
