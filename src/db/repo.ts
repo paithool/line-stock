@@ -586,7 +586,7 @@ storeId,
     
     )
     .run();
-  return getProduct(db, id);
+  return getProduct(db, storeId, id);
 }
 
 export async function archiveProduct(
