@@ -170,7 +170,7 @@ api.get('/summary', async (c) => {
     repo.getSummary(db),
     repo.lowStockProducts(db, 8),
     repo.listMovements(db, { limit: 12 }),
-    repo.listLocations(db),
+    repo.listLocations(db, c.get('user').store_id),
   ]);
   const byLocation = await db
     .prepare(
