@@ -1187,7 +1187,7 @@ export async function transfer(
     ref,
     balanceAfter: fromBalance,
     balanceAfterTo: toBalance,
-    total: await totalQty(db, productId),
+    total: await totalQty(db, storeId, productId),
   };
 }
   
