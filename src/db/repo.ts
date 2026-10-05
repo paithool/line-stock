@@ -303,9 +303,14 @@ export async function deleteLocation(
   }
 
   await db
-    .prepare('UPDATE locations SET active = 0 WHERE id = ?')
-    .bind(id)
-    .run();
+  .prepare(
+    `UPDATE locations
+     SET active = 0
+     WHERE id = ?
+       AND store_id = ?`,
+  )
+  .bind(id, storeId)
+  .run();
 }
 
 /* --------------------------------------------------------------- products */
