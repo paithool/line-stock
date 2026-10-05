@@ -1137,11 +1137,12 @@ export async function transfer(
     db
       .prepare(
         `INSERT INTO movements
-         (ref, type, product_id, location_id, qty, delta,
-          balance_after, note, actor_name, source)
-         VALUES (?, 'transfer_out', ?, ?, ?, ?, ?, ?, ?, ?)`,
+ (store_id, ref, type, product_id, location_id, qty, delta,
+  balance_after, note, actor_name, source)
+ VALUES (?, ?, 'transfer_out', ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
+        storeId,
         ref,
         productId,
         fromId,
@@ -1157,11 +1158,12 @@ export async function transfer(
     db
       .prepare(
         `INSERT INTO movements
-         (ref, type, product_id, location_id, qty, delta,
-          balance_after, note, actor_name, source)
-         VALUES (?, 'transfer_in', ?, ?, ?, ?, ?, ?, ?, ?)`,
+ (store_id, ref, type, product_id, location_id, qty, delta,
+  balance_after, note, actor_name, source)
+ VALUES (?, ?, 'transfer_in', ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
+        storeId,
         ref,
         productId,
         toId,
