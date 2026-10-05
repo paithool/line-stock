@@ -761,31 +761,70 @@ export async function totalQty(
 }
 
 /** บวก/ลบสต๊อกแบบกันติดลบ (atomic ที่ระดับ statement) */
-async function addStock(db: D1Database, productId: number, locationId: number, delta: number): Promise<number> {
+async function addStock(
+  db: D1Database,
+  storeId: number,
+  productId: number,
+  locationId: number,
+  delta: number,
+): Promise<number> {
   const location = await db
-  .prepare('SELECT id FROM locations WHERE id = ? AND active = 1')
-  .bind(locationId)
-  .first();
+    .prepare(
+      `SELECT id
+       FROM locations
+       WHERE id = ?
+         AND store_id = ?
+         AND active = 1`,
+    )
+    .bind(locationId, storeId)
+    .first();
 
-if (!location) {
-  throw new AppError('ไม่พบคลังหรือคลังถูกปิดใช้งาน');
-}
+  if (!location) {
+    throw new AppError('ไม่พบคลังหรือคลังถูกปิดใช้งาน');
+  }
+
   await db
-    .prepare('INSERT OR IGNORE INTO stock_levels (product_id, location_id, qty) VALUES (?, ?, 0)')
-    .bind(productId, locationId)
+    .prepare(
+      `INSERT OR IGNORE INTO stock_levels
+       (store_id, product_id, location_id, qty)
+       VALUES (?, ?, ?, 0)`,
+    )
+    .bind(storeId, productId, locationId)
     .run();
+
   const row = await db
     .prepare(
-      `UPDATE stock_levels SET qty = qty + ?, updated_at = datetime('now')
-       WHERE product_id = ? AND location_id = ? AND qty + ? >= 0
+      `UPDATE stock_levels
+       SET qty = qty + ?,
+           updated_at = datetime('now')
+       WHERE store_id = ?
+         AND product_id = ?
+         AND location_id = ?
+         AND qty + ? >= 0
        RETURNING qty`,
     )
-    .bind(delta, productId, locationId, delta)
+    .bind(
+      delta,
+      storeId,
+      productId,
+      locationId,
+      delta,
+    )
     .first<{ qty: number }>();
+
   if (!row) {
-    const have = await getQty(db, productId, locationId);
-    throw new AppError(`สต๊อกไม่พอ (คงเหลือ ${have})`);
+    const have = await getQty(
+      db,
+      storeId,
+      productId,
+      locationId,
+    );
+
+    throw new AppError(
+      `สต๊อกไม่พอ (คงเหลือ ${have})`,
+    );
   }
+
   return row.qty;
 }
 
