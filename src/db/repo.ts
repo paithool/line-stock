@@ -926,6 +926,7 @@ export async function receive(
 /** ปรับยอดให้เท่ากับจำนวนที่นับได้จริง */
 export async function adjust(
   db: D1Database,
+  storeId: number,
   productId: number,
   locationId: number,
   targetQty: number,
@@ -935,8 +936,12 @@ export async function adjust(
   if (targetQty < 0) throw new AppError('จำนวนคงเหลือติดลบไม่ได้');
   const ref = makeRef('ADJ');
   await db
-    .prepare('INSERT OR IGNORE INTO stock_levels (product_id, location_id, qty) VALUES (?, ?, 0)')
-    .bind(productId, locationId)
+    .prepare(
+  `INSERT OR IGNORE INTO stock_levels
+   (store_id, product_id, location_id, qty)
+   VALUES (?, ?, ?, 0)`,
+)
+.bind(storeId, productId, locationId)
     .run();
 
   let delta = 0;
