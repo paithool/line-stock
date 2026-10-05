@@ -18,8 +18,6 @@ const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 // PBKDF2 สำหรับเก็บรหัสผ่าน
 const PASSWORD_ITERATIONS = 100_000;
 
-
-
 /* ----------------------------------------------------------- crypto utils */
 
 function bytesToBase64Url(bytes: Uint8Array): string {
@@ -40,7 +38,9 @@ function base64UrlToBytes(value: string): Uint8Array {
     .replace(/-/g, '+')
     .replace(/_/g, '/');
 
-  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+  const padded =
+    base64 +
+    '='.repeat((4 - (base64.length % 4)) % 4);
 
   const binary = atob(padded);
   const bytes = new Uint8Array(binary.length);
@@ -55,9 +55,14 @@ function base64UrlToBytes(value: string): Uint8Array {
 async function sha256(value: string): Promise<string> {
   const data = new TextEncoder().encode(value);
 
-  const hash = await crypto.subtle.digest('SHA-256', data);
+  const hash = await crypto.subtle.digest(
+    'SHA-256',
+    data,
+  );
 
-  return bytesToBase64Url(new Uint8Array(hash));
+  return bytesToBase64Url(
+    new Uint8Array(hash),
+  );
 }
 
 /**
@@ -66,8 +71,11 @@ async function sha256(value: string): Promise<string> {
  * รูปแบบ:
  * pbkdf2$sha256$iterations$salt$hash
  */
-async function hashPassword(password: string): Promise<string> {
+async function hashPassword(
+  password: string,
+): Promise<string> {
   const salt = new Uint8Array(16);
+
   crypto.getRandomValues(salt);
 
   const key = await crypto.subtle.importKey(
@@ -104,7 +112,9 @@ function constantTimeEqual(
   a: Uint8Array,
   b: Uint8Array,
 ): boolean {
-  if (a.length !== b.length) return false;
+  if (a.length !== b.length) {
+    return false;
+  }
 
   let diff = 0;
 
@@ -121,7 +131,9 @@ async function verifyPassword(
 ): Promise<boolean> {
   const parts = storedHash.split('$');
 
-  if (parts.length !== 5) return false;
+  if (parts.length !== 5) {
+    return false;
+  }
 
   const [
     algorithm,
@@ -131,8 +143,13 @@ async function verifyPassword(
     expectedHashText,
   ] = parts;
 
-  if (algorithm !== 'pbkdf2') return false;
-  if (hashAlgorithm !== 'sha256') return false;
+  if (algorithm !== 'pbkdf2') {
+    return false;
+  }
+
+  if (hashAlgorithm !== 'sha256') {
+    return false;
+  }
 
   const iterations = Number(iterationsText);
 
@@ -149,7 +166,8 @@ async function verifyPassword(
 
   try {
     salt = base64UrlToBytes(saltText);
-    expectedHash = base64UrlToBytes(expectedHashText);
+    expectedHash =
+      base64UrlToBytes(expectedHashText);
   } catch {
     return false;
   }
@@ -181,7 +199,9 @@ async function verifyPassword(
 
 function createSessionToken(): string {
   const bytes = new Uint8Array(32);
+
   crypto.getRandomValues(bytes);
+
   return bytesToBase64Url(bytes);
 }
 
@@ -191,25 +211,35 @@ function getCookie(
   c: Context,
   name: string,
 ): string | null {
-  const cookieHeader = c.req.header('cookie') ?? '';
+  const cookieHeader =
+    c.req.header('cookie') ?? '';
 
   const cookies = cookieHeader.split(';');
 
   for (const item of cookies) {
     const index = item.indexOf('=');
 
-    if (index === -1) continue;
+    if (index === -1) {
+      continue;
+    }
 
-    const key = item.slice(0, index).trim();
-    const value = item.slice(index + 1).trim();
+    const key =
+      item.slice(0, index).trim();
 
-    if (key === name) return value;
+    const value =
+      item.slice(index + 1).trim();
+
+    if (key === name) {
+      return value;
+    }
   }
 
   return null;
 }
 
-function sessionCookie(token: string): string {
+function sessionCookie(
+  token: string,
+): string {
   return [
     `${SESSION_COOKIE}=${token}`,
     'Path=/',
@@ -276,7 +306,9 @@ async function ensureInitialAdmin(
       cleanAdminUsername,
     );
 
-  if (existing) return;
+  if (existing) {
+    return;
+  }
 
   const passwordHash =
     await hashPassword(password);
@@ -284,6 +316,7 @@ async function ensureInitialAdmin(
   try {
     await repo.createWebUser(
       env.DB,
+      1,
       cleanAdminUsername,
       passwordHash,
       env.WEB_ADMIN_DISPLAY_NAME?.trim() ||
@@ -313,18 +346,21 @@ export async function loginWebUser(
 
   if (!cleanUsername || !password) {
     return c.json(
-      { error: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน' },
+      {
+        error:
+          'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน',
+      },
       400,
     );
   }
 
   // สร้าง Admin คนแรก ถ้ายังไม่มีบัญชี
-  
-await ensureInitialAdmin(
-  c.env,
-  cleanUsername,
-  password,
-);
+  await ensureInitialAdmin(
+    c.env,
+    cleanUsername,
+    password,
+  );
+
   const account =
     await repo.getWebUserPasswordHash(
       c.env.DB,
@@ -332,46 +368,61 @@ await ensureInitialAdmin(
     );
 
   if (!account) {
-  return c.json(
-    { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' },
-    401,
-  );
-}
+    return c.json(
+      {
+        error:
+          'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+      },
+      401,
+    );
+  }
 
-const passwordOk = await verifyPassword(
-  password,
-  account.password_hash,
-);
+  const passwordOk =
+    await verifyPassword(
+      password,
+      account.password_hash,
+    );
 
-if (!passwordOk) {
-  return c.json(
-    { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' },
-    401,
-  );
-}
+  if (!passwordOk) {
+    return c.json(
+      {
+        error:
+          'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+      },
+      401,
+    );
+  }
 
-if (account.active !== 1) {
-  return c.json(
-    { error: 'บัญชีผู้ใช้นี้ถูกปิดใช้งาน' },
-    403,
-  );
-}
+  if (account.active !== 1) {
+    return c.json(
+      {
+        error:
+          'บัญชีผู้ใช้นี้ถูกปิดใช้งาน',
+      },
+      403,
+    );
+  }
 
-  const user = await repo.getWebUserById(
-    c.env.DB,
-    account.id,
-  );
+  const user =
+    await repo.getWebUserById(
+      c.env.DB,
+      account.id,
+    );
 
   if (!user || user.active !== 1) {
     return c.json(
-      { error: 'บัญชีผู้ใช้ไม่พร้อมใช้งาน' },
+      {
+        error:
+          'บัญชีผู้ใช้ไม่พร้อมใช้งาน',
+      },
       403,
     );
   }
 
   const token = createSessionToken();
   const tokenHash = await sha256(token);
-  const expiresAt = Date.now() + SESSION_TTL_MS;
+  const expiresAt =
+    Date.now() + SESSION_TTL_MS;
 
   await repo.createWebSession(
     c.env.DB,
@@ -400,7 +451,8 @@ if (account.active !== 1) {
     },
     200,
     {
-      'Set-Cookie': sessionCookie(token),
+      'Set-Cookie':
+        sessionCookie(token),
     },
   );
 }
@@ -410,10 +462,15 @@ if (account.active !== 1) {
 export async function logoutWebUser(
   c: AppContext,
 ): Promise<Response> {
-  const token = getCookie(c, SESSION_COOKIE);
+  const token =
+    getCookie(
+      c,
+      SESSION_COOKIE,
+    );
 
   if (token) {
-    const tokenHash = await sha256(token);
+    const tokenHash =
+      await sha256(token);
 
     await repo.deleteWebSession(
       c.env.DB,
@@ -425,7 +482,8 @@ export async function logoutWebUser(
     { ok: true },
     200,
     {
-      'Set-Cookie': clearSessionCookie(),
+      'Set-Cookie':
+        clearSessionCookie(),
     },
   );
 }
@@ -439,19 +497,24 @@ export async function requireAuth(
   c: AppContext,
   next: Next,
 ): Promise<Response | void> {
-  const token = getCookie(
-    c,
-    SESSION_COOKIE,
-  );
+  const token =
+    getCookie(
+      c,
+      SESSION_COOKIE,
+    );
 
   if (!token) {
     return c.json(
-      { error: 'กรุณาเข้าสู่ระบบ' },
+      {
+        error:
+          'กรุณาเข้าสู่ระบบ',
+      },
       401,
     );
   }
 
-  const tokenHash = await sha256(token);
+  const tokenHash =
+    await sha256(token);
 
   const session =
     await repo.getWebSession(
@@ -461,7 +524,10 @@ export async function requireAuth(
 
   if (!session) {
     return c.json(
-      { error: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' },
+      {
+        error:
+          'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่',
+      },
       401,
     );
   }
@@ -473,7 +539,10 @@ export async function requireAuth(
     );
 
     return c.json(
-      { error: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' },
+      {
+        error:
+          'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่',
+      },
       401,
     );
   }
@@ -491,7 +560,10 @@ export async function requireAuth(
     );
 
     return c.json(
-      { error: 'บัญชีผู้ใช้ไม่พร้อมใช้งาน' },
+      {
+        error:
+          'บัญชีผู้ใช้ไม่พร้อมใช้งาน',
+      },
       403,
     );
   }
@@ -509,7 +581,9 @@ export async function requireAuth(
   // ล้าง session เก่าที่หมดอายุเป็นครั้งคราว
   if (Math.random() < 0.05) {
     c.executionCtx.waitUntil(
-      repo.purgeExpiredWebSessions(c.env.DB).catch(() => {}),
+      repo
+        .purgeExpiredWebSessions(c.env.DB)
+        .catch(() => {}),
     );
   }
 
@@ -524,7 +598,10 @@ export async function requireAdmin(
 
   if (user.role !== 'admin') {
     return c.json(
-      { error: 'ไม่มีสิทธิ์เข้าถึงส่วนผู้ดูแลระบบ' },
+      {
+        error:
+          'ไม่มีสิทธิ์เข้าถึงส่วนผู้ดูแลระบบ',
+      },
       403,
     );
   }
@@ -545,18 +622,24 @@ export async function changeWebUserPassword(
   userId: number,
   newPassword: string,
 ): Promise<Response> {
-
-  if (!newPassword || newPassword.length < 6) {
+  if (
+    !newPassword ||
+    newPassword.length < 6
+  ) {
     return c.json(
-      { error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' },
+      {
+        error:
+          'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+      },
       400,
     );
   }
 
-  const user = await repo.getWebUserById(
-    c.env.DB,
-    userId,
-  );
+  const user =
+    await repo.getWebUserById(
+      c.env.DB,
+      userId,
+    );
 
   if (!user) {
     return c.json(
@@ -567,7 +650,10 @@ export async function changeWebUserPassword(
 
   if (user.active !== 1) {
     return c.json(
-      { error: 'บัญชีผู้ใช้นี้ถูกปิดใช้งาน' },
+      {
+        error:
+          'บัญชีผู้ใช้นี้ถูกปิดใช้งาน',
+      },
       400,
     );
   }
@@ -583,36 +669,48 @@ export async function changeWebUserPassword(
 
   return c.json({
     ok: true,
-    message: 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว',
+    message:
+      'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว',
   });
 }
+
 export async function updateWebUserProfile(
   c: AppContext,
   userId: number,
   username: string,
   displayName: string,
 ): Promise<Response> {
-  const cleanUsername = username.trim();
-  const cleanDisplayName = displayName.trim();
+  const cleanUsername =
+    username.trim();
+
+  const cleanDisplayName =
+    displayName.trim();
 
   if (!cleanUsername) {
     return c.json(
-      { error: 'กรุณาระบุชื่อผู้ใช้' },
+      {
+        error:
+          'กรุณาระบุชื่อผู้ใช้',
+      },
       400,
     );
   }
 
   if (!cleanDisplayName) {
     return c.json(
-      { error: 'กรุณาระบุชื่อที่แสดง' },
+      {
+        error:
+          'กรุณาระบุชื่อที่แสดง',
+      },
       400,
     );
   }
 
-  const user = await repo.getWebUserById(
-    c.env.DB,
-    userId,
-  );
+  const user =
+    await repo.getWebUserById(
+      c.env.DB,
+      userId,
+    );
 
   if (!user) {
     return c.json(
@@ -620,7 +718,6 @@ export async function updateWebUserProfile(
       404,
     );
   }
-
 
   try {
     const updated =
@@ -633,7 +730,8 @@ export async function updateWebUserProfile(
 
     return c.json({
       ok: true,
-      message: 'แก้ไขข้อมูลผู้ใช้เรียบร้อยแล้ว',
+      message:
+        'แก้ไขข้อมูลผู้ใช้เรียบร้อยแล้ว',
       user: {
         id: updated.id,
         username: updated.username,
@@ -644,7 +742,9 @@ export async function updateWebUserProfile(
   } catch (err) {
     if (err instanceof Error) {
       return c.json(
-        { error: err.message },
+        {
+          error: err.message,
+        },
         400,
       );
     }
@@ -667,27 +767,44 @@ export async function createWebUserByAdmin(
   password: string,
   role: string,
 ): Promise<Response> {
-  const cleanUsername = username.trim();
-  const cleanDisplayName = displayName.trim();
-  const cleanRole = role.trim();
+  const cleanUsername =
+    username.trim();
+
+  const cleanDisplayName =
+    displayName.trim();
+
+  const cleanRole =
+    role.trim();
 
   if (!cleanUsername) {
     return c.json(
-      { error: 'กรุณาระบุชื่อผู้ใช้' },
+      {
+        error:
+          'กรุณาระบุชื่อผู้ใช้',
+      },
       400,
     );
   }
 
   if (!cleanDisplayName) {
     return c.json(
-      { error: 'กรุณาระบุชื่อที่แสดง' },
+      {
+        error:
+          'กรุณาระบุชื่อที่แสดง',
+      },
       400,
     );
   }
 
-  if (!password || password.length < 6) {
+  if (
+    !password ||
+    password.length < 6
+  ) {
     return c.json(
-      { error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' },
+      {
+        error:
+          'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+      },
       400,
     );
   }
@@ -697,7 +814,10 @@ export async function createWebUserByAdmin(
     cleanRole !== 'admin'
   ) {
     return c.json(
-      { error: 'สิทธิ์ผู้ใช้ไม่ถูกต้อง' },
+      {
+        error:
+          'สิทธิ์ผู้ใช้ไม่ถูกต้อง',
+      },
       400,
     );
   }
@@ -710,7 +830,10 @@ export async function createWebUserByAdmin(
 
   if (existing) {
     return c.json(
-      { error: 'ชื่อผู้ใช้นี้ถูกใช้งานแล้ว' },
+      {
+        error:
+          'ชื่อผู้ใช้นี้ถูกใช้งานแล้ว',
+      },
       400,
     );
   }
@@ -718,9 +841,14 @@ export async function createWebUserByAdmin(
   const passwordHash =
     await hashPassword(password);
 
+  // ใช้ร้านเดียวกับ Admin ที่กำลัง Login
+  const currentUser =
+    c.get('user');
+
   const user =
     await repo.createWebUser(
       c.env.DB,
+      currentUser.store_id,
       cleanUsername,
       passwordHash,
       cleanDisplayName,
@@ -730,7 +858,8 @@ export async function createWebUserByAdmin(
   return c.json(
     {
       ok: true,
-      message: 'สร้างบัญชีผู้ใช้เรียบร้อยแล้ว',
+      message:
+        'สร้างบัญชีผู้ใช้เรียบร้อยแล้ว',
       user: {
         id: user.id,
         username: user.username,
