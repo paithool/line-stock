@@ -393,8 +393,8 @@ const where: string[] = [
   }
 
   const qtyExpr = opts.locationId
-    ? 'COALESCE((SELECT SUM(qty) FROM stock_levels s WHERE s.product_id = p.id AND s.location_id = ?), 0)'
-    : 'COALESCE((SELECT SUM(qty) FROM stock_levels s WHERE s.product_id = p.id), 0)';
+  ? 'COALESCE((SELECT SUM(qty) FROM stock_levels s WHERE s.product_id = p.id AND s.store_id = p.store_id AND s.location_id = ?), 0)'
+  : 'COALESCE((SELECT SUM(qty) FROM stock_levels s WHERE s.product_id = p.id AND s.store_id = p.store_id), 0)';
   const qtyBinds = opts.locationId ? [opts.locationId] : [];
 
   let having = '';
