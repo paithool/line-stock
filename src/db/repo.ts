@@ -591,16 +591,21 @@ storeId,
 
 export async function archiveProduct(
   db: D1Database,
+  storeId: number,
   id: number,
   actor: Actor,
 ): Promise<void> {
   const product = await db
     .prepare(
       `SELECT id, name
-       FROM products
-       WHERE id = ? AND active = 1`,
+ FROM products
+ WHERE id = ?
+   AND store_id = ?
+   AND active = 1`,
+       
+       
     )
-    .bind(id)
+    .bind(id, storeId)
     .first<{ id: number; name: string }>();
 
   if (!product) {
