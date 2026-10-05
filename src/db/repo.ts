@@ -439,7 +439,7 @@ export async function getProduct(
 export async function getProductByBarcode(
   db: D1Database,
   storeId: number,
-  barcode: string,
+  barcode: ref,
 ): Promise<Product | null> {
   return db
   .prepare(
@@ -918,7 +918,7 @@ export async function receive(
   qty,
 );
   await logMovement(db, {
-    ref, type: 'receive', productId, locationId, qty, delta: qty, balanceAfter: balance, note, actor,
+    storeId, ref, type: 'receive', productId, locationId, qty, delta: qty, balanceAfter: balance, note, actor,
   });
   return { ref, balanceAfter: balance, total: await totalQty(db, productId) };
 }
