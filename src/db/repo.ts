@@ -370,7 +370,13 @@ export async function searchProducts(
 
 export async function listProducts(
   db: D1Database,
-  opts: { q?: string; locationId?: number; status?: 'all' | 'low' | 'out'; limit?: number } = {},
+  storeId: number,
+  opts: {
+    q?: string;
+    locationId?: number;
+    status?: 'all' | 'low' | 'out';
+    limit?: number;
+  } = {},
 ): Promise<ProductWithStock[]> {
   const limit = opts.limit ?? 200;
   const binds: unknown[] = [];
