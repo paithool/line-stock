@@ -901,6 +901,7 @@ export async function issue(
 /** รับเข้า */
 export async function receive(
   db: D1Database,
+  storeId: number,
   productId: number,
   locationId: number,
   qty: number,
@@ -909,7 +910,13 @@ export async function receive(
 ): Promise<MovementResult> {
   if (qty <= 0) throw new AppError('จำนวนต้องมากกว่า 0');
   const ref = makeRef('IN');
-  const balance = await addStock(db, productId, locationId, qty);
+  const balance = await addStock(
+  db,
+  storeId,
+  productId,
+  locationId,
+  qty,
+);
   await logMovement(db, {
     ref, type: 'receive', productId, locationId, qty, delta: qty, balanceAfter: balance, note, actor,
   });
