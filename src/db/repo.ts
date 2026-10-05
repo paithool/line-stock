@@ -420,7 +420,11 @@ const where: string[] = [
   return results ?? [];
 }
 
-export async function getProduct(db: D1Database, id: number): Promise<Product | null> {
+export async function getProduct(
+  db: D1Database,
+  storeId: number,
+  id: number,
+): Promise<Product | null> {
   return db.prepare('SELECT * FROM products WHERE id = ?').bind(id).first<Product>();
 }
 
