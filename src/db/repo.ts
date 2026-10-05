@@ -259,13 +259,16 @@ export async function findLocationByKeyword(
   // ถ้าตั้งเป็นคลังหลัก
   // ให้ยกเลิกคลังหลักอื่น
   if (nextDefault) {
-    await db
-      .prepare(
-        'UPDATE locations SET is_default = 0 WHERE id != ?',
-      )
-      .bind(id)
-      .run();
-  }
+  await db
+    .prepare(
+      `UPDATE locations
+       SET is_default = 0
+       WHERE store_id = ?
+         AND id != ?`,
+    )
+    .bind(storeId, id)
+    .run();
+}
 
   return getLocation(db, id);
 }
