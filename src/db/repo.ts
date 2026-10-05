@@ -497,6 +497,7 @@ export async function createProduct(
        
     )
     .bind(
+      storeId,
       sku,
       input.barcode?.trim() || null,
       input.name.trim(),
