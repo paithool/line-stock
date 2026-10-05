@@ -202,27 +202,66 @@ api.get('/locations', async (c) => {
 });
 
 api.post('/locations', async (c) => {
-  const body = await c.req.json<{ code: string; name: string; is_default?: boolean }>();
-  if (!body.code?.trim() || !body.name?.trim()) throw new AppError('กรุณากรอกรหัสและชื่อคลัง');
-  return c.json(await repo.createLocation(c.env.DB, body.code, body.name, !!body.is_default), 201);
+  const body = await c.req.json<{
+    code: string;
+    name: string;
+    is_default?: boolean;
+  }>();
+
+  if (!body.code?.trim() || !body.name?.trim()) {
+    throw new AppError('กรุณากรอกรหัสและชื่อคลัง');
+  }
+
+  const user = c.get('user');
+
+  return c.json(
+    await repo.createLocation(
+      c.env.DB,
+      user.store_id,
+      body.code,
+      body.name,
+      !!body.is_default,
+    ),
+    201,
+  );
 });
 
 api.put('/locations/:id', async (c) => {
   const body = await c.req.json<Record<string, unknown>>();
   const patch: Record<string, unknown> = { ...body };
-  if ('is_default' in body) patch.is_default = body.is_default ? 1 : 0;
-  if ('active' in body) patch.active = body.active ? 1 : 0;
-  return c.json(await repo.updateLocation(c.env.DB, Number(c.req.param('id')), patch as never));
+
+  if ('is_default' in body) {
+    patch.is_default = body.is_default ? 1 : 0;
+  }
+
+  if ('active' in body) {
+    patch.active = body.active ? 1 : 0;
+  }
+
+  const user = c.get('user');
+
+  return c.json(
+    await repo.updateLocation(
+      c.env.DB,
+      user.store_id,
+      Number(c.req.param('id')),
+      patch as never,
+    ),
+  );
 });
 
 api.delete('/locations/:id', async (c) => {
+  const user = c.get('user');
+
   await repo.deleteLocation(
     c.env.DB,
+    user.store_id,
     Number(c.req.param('id')),
   );
 
   return c.json({ ok: true });
 });
+
 
 /* ------------------------------------------------------------- products */
 
