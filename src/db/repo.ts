@@ -1092,35 +1092,46 @@ export async function transfer(
     db
       .prepare(
         `UPDATE stock_levels
-         SET qty = qty - ?, updated_at = datetime('now')
-         WHERE product_id = ?
-           AND location_id = ?
-           AND qty >= ?`,
+ SET qty = qty - ?, updated_at = datetime('now')
+ WHERE store_id = ?
+   AND product_id = ?
+   AND location_id = ?
+   AND qty >= ?`,
       )
-      .bind(qty, productId, fromId, qty),
+      .bind(
+  qty,
+  storeId,
+  productId,
+  fromId,
+  qty,
+),
 
     // เพิ่มปลายทาง
     db
       .prepare(
         `UPDATE stock_levels
-         SET qty = qty + ?, updated_at = datetime('now')
-         WHERE product_id = ?
-           AND location_id = ?
-           AND EXISTS (
-             SELECT 1
-             FROM stock_levels
-             WHERE product_id = ?
-               AND location_id = ?
-               AND qty >= 0
-           )`,
+ SET qty = qty + ?, updated_at = datetime('now')
+ WHERE store_id = ?
+   AND product_id = ?
+   AND location_id = ?
+   AND EXISTS (
+     SELECT 1
+     FROM stock_levels
+     WHERE store_id = ?
+       AND product_id = ?
+       AND location_id = ?
+       AND qty >= 0
+   )`,
       )
       .bind(
-        qty,
-        productId,
-        toId,
-        productId,
-        fromId,
-      ),
+  qty,
+  storeId,
+  productId,
+  toId,
+  storeId,
+  productId,
+  fromId,
+   ),
 
     // ประวัติย้ายออก
     db
