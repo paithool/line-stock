@@ -269,6 +269,63 @@ async function refreshAdminUsers() {
   }
 }
 
+async function refreshAdminStores() {
+  const list = $('#adminStoreList');
+
+  if (!list) return;
+
+  list.innerHTML = '<div class="skeleton"></div>';
+
+  try {
+    const data = await api('/admin/stores');
+
+    list.innerHTML = data.stores.length
+      ? data.stores.map((store) => `
+          <div
+            class="item item--plain"
+            style="
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              gap:12px;
+            "
+          >
+            <div class="item__main">
+              <div class="item__name">
+                ${esc(store.name)}
+              </div>
+
+              <div class="item__meta">
+                <span>${esc(store.code)}</span>
+              </div>
+            </div>
+
+            <span
+              class="badge ${
+                Number(store.active) === 1
+                  ? 'badge--ok'
+                  : 'badge--out'
+              }"
+            >
+              ${
+                Number(store.active) === 1
+                  ? 'ใช้งาน'
+                  : 'ปิดใช้งาน'
+              }
+            </span>
+          </div>
+        `).join('')
+      : '<div class="empty">ยังไม่มีร้านค้า</div>';
+
+  } catch (err) {
+    list.innerHTML = `
+      <div class="empty">
+        ไม่สามารถโหลดรายชื่อร้านค้าได้<br>
+        <small>${esc(err.message)}</small>
+      </div>
+    `;
+  }
+}
 
         function openAdminUserEdit(user) {
   const editBox = $('#adminUserEdit');
