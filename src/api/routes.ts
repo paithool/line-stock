@@ -13,7 +13,12 @@ import {
   type AuthUser,
 } from './auth';
 
-type Vars = { Variables: { user: AuthUser }; Bindings: Env };
+type Vars = {
+  Variables: {
+    user: AuthUser;
+  };
+  Bindings: Env;
+};
 
 export const api = new Hono<Vars>();
 
@@ -36,13 +41,11 @@ api.post('/logout', (c) => {
   return logoutWebUser(c);
 });
 
-
-
-
-
 api.use('/*', requireAuth);
 
 api.get('/me', (c) => c.json(c.get('user')));
+
+/* ---------------------------------------------------------- admin users */
 
 api.get('/admin/users', requireAdmin, async (c) => {
   const users = await repo.listWebUsers(c.env.DB);
@@ -94,25 +97,29 @@ api.post('/admin/users/:id/role-status', requireAdmin, async (c) => {
   return c.json(user);
 });
 
-/* ------------------------------------------------------ password */
+/* -------------------------------------------------------------- password */
 
 api.post('/users/:id/password', async (c) => {
   const targetUserId = Number(c.req.param('id'));
 
-  if (!Number.isInteger(targetUserId) || targetUserId <= 0) {
+  if (
+    !Number.isInteger(targetUserId) ||
+    targetUserId <= 0
+  ) {
     throw new AppError('รหัสผู้ใช้ไม่ถูกต้อง');
   }
+
   const currentUser = c.get('user');
 
-if (
-  targetUserId !== currentUser.id &&
-  currentUser.role !== 'admin'
-) {
-  return c.json(
-    { error: 'ไม่มีสิทธิ์แก้ไขบัญชีผู้ใช้นี้' },
-    403,
-  );
-}
+  if (
+    targetUserId !== currentUser.id &&
+    currentUser.role !== 'admin'
+  ) {
+    return c.json(
+      { error: 'ไม่มีสิทธิ์แก้ไขบัญชีผู้ใช้นี้' },
+      403,
+    );
+  }
 
   const body = await c.req.json<{
     newPassword?: string;
@@ -136,17 +143,18 @@ api.post('/users/:id/profile', async (c) => {
   ) {
     throw new AppError('รหัสผู้ใช้ไม่ถูกต้อง');
   }
+
   const currentUser = c.get('user');
 
-if (
-  targetUserId !== currentUser.id &&
-  currentUser.role !== 'admin'
-) {
-  return c.json(
-    { error: 'ไม่มีสิทธิ์แก้ไขบัญชีผู้ใช้นี้' },
-    403,
-  );
-}
+  if (
+    targetUserId !== currentUser.id &&
+    currentUser.role !== 'admin'
+  ) {
+    return c.json(
+      { error: 'ไม่มีสิทธิ์แก้ไขบัญชีผู้ใช้นี้' },
+      403,
+    );
+  }
 
   const body = await c.req.json<{
     username?: string;
@@ -164,27 +172,104 @@ if (
   );
 });
 
+/* -------------------------------------------------------------- summary */
+
 api.get('/summary', async (c) => {
   const db = c.env.DB;
-  const [summary, low, recent, locations] = await Promise.all([
-    repo.getSummary(db),
-    repo.lowStockProducts(db, 8),
-    repo.listMovements(db, { limit: 12 }),
-    repo.listLocations(db, c.get('user').store_id),
+  const user = c.get('user');
+  const storeId = user.store_id;
+
+  const [
+    summary,
+    low,
+    recent,
+    locations,
+  ] = await Promise.all([
+    repo.getSummary(
+      db,
+      storeId,
+    ),
+
+    repo.lowStockProducts(
+      db,
+      storeId,
+      8,
+    ),
+
+    repo.listMovements(
+      db,
+      storeId,
+      {
+        limit: 12,
+      },
+    ),
+
+    repo.listLocations(
+      db,
+      storeId,
+      true,
+    ),
   ]);
+
   const byLocation = await db
     .prepare(
-      `SELECT l.id, l.code, l.name,
-              COALESCE(SUM(CASE WHEN p.active = 1 THEN s.qty ELSE 0 END), 0) AS units,
-              COUNT(CASE WHEN p.active = 1 AND s.qty > 0 THEN 1 END) AS items
+      `SELECT
+         l.id,
+         l.code,
+         l.name,
+
+         COALESCE(
+           SUM(
+             CASE
+               WHEN p.active = 1
+               THEN s.qty
+               ELSE 0
+             END
+           ),
+           0
+         ) AS units,
+
+         COUNT(
+           CASE
+             WHEN p.active = 1
+              AND s.qty > 0
+             THEN 1
+           END
+         ) AS items
+
        FROM locations l
-       LEFT JOIN stock_levels s ON s.location_id = l.id
-       LEFT JOIN products p ON p.id = s.product_id
+
+       LEFT JOIN stock_levels s
+         ON s.location_id = l.id
+        AND s.store_id = l.store_id
+
+       LEFT JOIN products p
+         ON p.id = s.product_id
+        AND p.store_id = s.store_id
+
        WHERE l.active = 1
-       GROUP BY l.id ORDER BY l.is_default DESC, l.code`,
+         AND l.store_id = ?
+
+       GROUP BY
+         l.id,
+         l.code,
+         l.name,
+         l.is_default
+
+       ORDER BY
+         l.is_default DESC,
+         l.code`,
     )
+    .bind(storeId)
     .all();
-  return c.json({ summary, low, recent, locations, byLocation: byLocation.results ?? [] });
+
+  return c.json({
+    summary,
+    low,
+    recent,
+    locations,
+    byLocation: byLocation.results ?? [],
+  });
 });
 
 /* ------------------------------------------------------------ locations */
@@ -208,8 +293,13 @@ api.post('/locations', async (c) => {
     is_default?: boolean;
   }>();
 
-  if (!body.code?.trim() || !body.name?.trim()) {
-    throw new AppError('กรุณากรอกรหัสและชื่อคลัง');
+  if (
+    !body.code?.trim() ||
+    !body.name?.trim()
+  ) {
+    throw new AppError(
+      'กรุณากรอกรหัสและชื่อคลัง',
+    );
   }
 
   const user = c.get('user');
@@ -227,8 +317,12 @@ api.post('/locations', async (c) => {
 });
 
 api.put('/locations/:id', async (c) => {
-  const body = await c.req.json<Record<string, unknown>>();
-  const patch: Record<string, unknown> = { ...body };
+  const body =
+    await c.req.json<Record<string, unknown>>();
+
+  const patch: Record<string, unknown> = {
+    ...body,
+  };
 
   if ('is_default' in body) {
     patch.is_default = body.is_default ? 1 : 0;
@@ -259,66 +353,204 @@ api.delete('/locations/:id', async (c) => {
     Number(c.req.param('id')),
   );
 
-  return c.json({ ok: true });
+  return c.json({
+    ok: true,
+  });
 });
-
 
 /* ------------------------------------------------------------- products */
 
 api.get('/products', async (c) => {
-  const q = c.req.query('q') ?? '';
-  const locationId = c.req.query('locationId') ? Number(c.req.query('locationId')) : undefined;
-  const status = (c.req.query('status') as 'all' | 'low' | 'out' | undefined) ?? 'all';
-  const products = await repo.listProducts(c.env.DB, { q, locationId, status, limit: 300 });
+  const user = c.get('user');
+
+  const q =
+    c.req.query('q') ?? '';
+
+  const locationId =
+    c.req.query('locationId')
+      ? Number(
+          c.req.query('locationId'),
+        )
+      : undefined;
+
+  const status =
+    (c.req.query('status') as
+      | 'all'
+      | 'low'
+      | 'out'
+      | undefined) ?? 'all';
+
+  const products =
+    await repo.listProducts(
+      c.env.DB,
+      user.store_id,
+      {
+        q,
+        locationId,
+        status,
+        limit: 300,
+      },
+    );
+
   return c.json(products);
 });
 
-api.get('/products/lookup/:code', async (c) => {
-  const product = await repo.getProductByBarcode(c.env.DB, c.req.param('code'));
-  if (!product) return c.json({ error: 'ไม่พบสินค้าที่มีบาร์โค้ดนี้' }, 404);
-  const levels = await repo.getLevels(c.env.DB, product.id);
-  return c.json({ product, levels });
-});
+api.get(
+  '/products/lookup/:code',
+  async (c) => {
+    const user = c.get('user');
+
+    const product =
+      await repo.getProductByBarcode(
+        c.env.DB,
+        user.store_id,
+        c.req.param('code'),
+      );
+
+    if (!product) {
+      return c.json(
+        {
+          error:
+            'ไม่พบสินค้าที่มีบาร์โค้ดนี้',
+        },
+        404,
+      );
+    }
+
+    const levels =
+      await repo.getLevels(
+        c.env.DB,
+        user.store_id,
+        product.id,
+      );
+
+    return c.json({
+      product,
+      levels,
+    });
+  },
+);
 
 api.get('/products/:id', async (c) => {
-  const id = Number(c.req.param('id'));
-  const product = await repo.getProduct(c.env.DB, id);
-  if (!product) return c.json({ error: 'ไม่พบสินค้า' }, 404);
-  const [levels, movements] = await Promise.all([
-    repo.getLevels(c.env.DB, id),
-    repo.listMovements(c.env.DB, { productId: id, limit: 30 }),
+  const user = c.get('user');
+
+  const id =
+    Number(c.req.param('id'));
+
+  const product =
+    await repo.getProduct(
+      c.env.DB,
+      user.store_id,
+      id,
+    );
+
+  if (!product) {
+    return c.json(
+      {
+        error: 'ไม่พบสินค้า',
+      },
+      404,
+    );
+  }
+
+  const [
+    levels,
+    movements,
+  ] = await Promise.all([
+    repo.getLevels(
+      c.env.DB,
+      user.store_id,
+      id,
+    ),
+
+    repo.listMovements(
+      c.env.DB,
+      user.store_id,
+      {
+        productId: id,
+        limit: 30,
+      },
+    ),
   ]);
-  return c.json({ product, levels, movements, total: levels.reduce((s, l) => s + l.qty, 0) });
+
+  return c.json({
+    product,
+    levels,
+    movements,
+    total: levels.reduce(
+      (sum, level) =>
+        sum + level.qty,
+      0,
+    ),
+  });
 });
 
 api.post('/products', async (c) => {
-  const body = await c.req.json<Record<string, never>>();
-  const product = await repo.createProduct(c.env.DB, body);
-  // ตั้งยอดเริ่มต้นถ้าระบุมา
-  const initialQty = Number((body as Record<string, unknown>).initial_qty ?? 0);
-  const locationId = Number((body as Record<string, unknown>).location_id ?? 0);
-  if (initialQty > 0 && locationId) {
   const user = c.get('user');
 
-  await repo.receive(
-    c.env.DB,
-    product.id,
-    locationId,
-    initialQty,
-    'จำนวนเริ่มต้นตอนเพิ่มสินค้า',
-    {
-      
-      name: user.username,
-      source: 'system',
-    },
+  const body =
+    await c.req.json<
+      Record<string, unknown>
+    >();
+
+  const product =
+    await repo.createProduct(
+      c.env.DB,
+      user.store_id,
+      body,
+    );
+
+  // ตั้งยอดเริ่มต้นถ้าระบุมา
+  const initialQty = Number(
+    body.initial_qty ?? 0,
   );
-}
- return c.json(product, 201);
+
+  const locationId = Number(
+    body.location_id ?? 0,
+  );
+
+  if (
+    initialQty > 0 &&
+    locationId
+  ) {
+    const actor = {
+      name: user.username,
+      source: 'system' as const,
+    };
+
+    await repo.receive(
+      c.env.DB,
+      user.store_id,
+      product.id,
+      locationId,
+      initialQty,
+      'จำนวนเริ่มต้นตอนเพิ่มสินค้า',
+      actor,
+    );
+  }
+
+  return c.json(
+    product,
+    201,
+  );
 });
 
 api.put('/products/:id', async (c) => {
-  const body = await c.req.json<Record<string, never>>();
-  return c.json(await repo.updateProduct(c.env.DB, Number(c.req.param('id')), body));
+  const user = c.get('user');
+
+  const body =
+    await c.req.json<
+      Record<string, unknown>
+    >();
+
+  return c.json(
+    await repo.updateProduct(
+      c.env.DB,
+      user.store_id,
+      Number(c.req.param('id')),
+      body,
+    ),
+  );
 });
 
 api.delete('/products/:id', async (c) => {
@@ -336,79 +568,179 @@ api.delete('/products/:id', async (c) => {
     actor,
   );
 
-  return c.json({ ok: true });
+  return c.json({
+    ok: true,
+  });
 });
 
 /* ------------------------------------------------------------ movements */
+
 api.get('/movements', async (c) => {
-  const productId = c.req.query('productId')
-    ? Number(c.req.query('productId'))
-    : undefined;
+  const user = c.get('user');
 
-  const locationId = c.req.query('locationId')
-    ? Number(c.req.query('locationId'))
-    : undefined;
+  const productId =
+    c.req.query('productId')
+      ? Number(
+          c.req.query('productId'),
+        )
+      : undefined;
 
-  const startDate = c.req.query('startDate')?.trim() || undefined;
+  const locationId =
+    c.req.query('locationId')
+      ? Number(
+          c.req.query('locationId'),
+        )
+      : undefined;
 
-  const endDate = c.req.query('endDate')?.trim() || undefined;
+  const startDate =
+    c.req.query('startDate')
+      ?.trim() || undefined;
+
+  const endDate =
+    c.req.query('endDate')
+      ?.trim() || undefined;
 
   const limit = Math.min(
-    Math.max(Number(c.req.query('limit') ?? 60), 1),
+    Math.max(
+      Number(
+        c.req.query('limit') ?? 60,
+      ),
+      1,
+    ),
     200,
   );
 
   return c.json(
-    await repo.listMovements(c.env.DB, {
-      productId,
-      locationId,
-      startDate,
-      endDate,
-      limit,
-    }),
+    await repo.listMovements(
+      c.env.DB,
+      user.store_id,
+      {
+        productId,
+        locationId,
+        startDate,
+        endDate,
+        limit,
+      },
+    ),
   );
 });
 
-
 api.post('/movements', async (c) => {
-  const body = await c.req.json<{
-    action: 'issue' | 'receive' | 'adjust' | 'transfer';
-    productId: number;
-    locationId: number;
-    toLocationId?: number;
-    qty: number;
-    note?: string;
-  }>();
+  const body =
+    await c.req.json<{
+      action:
+        | 'issue'
+        | 'receive'
+        | 'adjust'
+        | 'transfer';
+
+      productId: number;
+      locationId: number;
+      toLocationId?: number;
+      qty: number;
+      note?: string;
+    }>();
+
   const user = c.get('user');
 
-const actor = {
-  name: user.username,
-  source: 'system' as const,
-};
-  
+  const actor = {
+    name: user.username,
+    source: 'system' as const,
+  };
+
   const db = c.env.DB;
+  const storeId = user.store_id;
+
   const qty = Number(body.qty);
-  if (!body.productId || !body.locationId) throw new AppError('ข้อมูลไม่ครบ');
-  if (!Number.isFinite(qty)) throw new AppError('จำนวนไม่ถูกต้อง');
+
+  if (
+    !body.productId ||
+    !body.locationId
+  ) {
+    throw new AppError(
+      'ข้อมูลไม่ครบ',
+    );
+  }
+
+  if (!Number.isFinite(qty)) {
+    throw new AppError(
+      'จำนวนไม่ถูกต้อง',
+    );
+  }
 
   let result;
+
   switch (body.action) {
     case 'issue':
-      result = await repo.issue(db, body.productId, body.locationId, qty, body.note ?? null, actor);
+      result = await repo.issue(
+        db,
+        storeId,
+        body.productId,
+        body.locationId,
+        qty,
+        body.note ?? null,
+        actor,
+      );
       break;
+
     case 'receive':
-      result = await repo.receive(db, body.productId, body.locationId, qty, body.note ?? null, actor);
+      result = await repo.receive(
+        db,
+        storeId,
+        body.productId,
+        body.locationId,
+        qty,
+        body.note ?? null,
+        actor,
+      );
       break;
+
     case 'adjust':
-      result = await repo.adjust(db, body.productId, body.locationId, qty, body.note ?? null, actor);
+      result = await repo.adjust(
+        db,
+        storeId,
+        body.productId,
+        body.locationId,
+        qty,
+        body.note ?? null,
+        actor,
+      );
       break;
+
     case 'transfer':
-      if (!body.toLocationId) throw new AppError('กรุณาเลือกคลังปลายทาง');
-      result = await repo.transfer(db, body.productId, body.locationId, body.toLocationId, qty, body.note ?? null, actor);
+      if (!body.toLocationId) {
+        throw new AppError(
+          'กรุณาเลือกคลังปลายทาง',
+        );
+      }
+
+      result = await repo.transfer(
+        db,
+        storeId,
+        body.productId,
+        body.locationId,
+        body.toLocationId,
+        qty,
+        body.note ?? null,
+        actor,
+      );
       break;
+
     default:
-      throw new AppError('ประเภทรายการไม่ถูกต้อง');
+      throw new AppError(
+        'ประเภทรายการไม่ถูกต้อง',
+      );
   }
-  const levels = await repo.getLevels(db, body.productId);
-  return c.json({ ...result, levels });
+
+  const levels =
+    await repo.getLevels(
+      db,
+      storeId,
+      body.productId,
+    );
+
+  return c.json({
+    ...result,
+    levels,
+  });
 });
