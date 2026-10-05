@@ -331,6 +331,7 @@ api.delete('/products/:id', async (c) => {
 
   await repo.archiveProduct(
     c.env.DB,
+    user.store_id,
     Number(c.req.param('id')),
     actor,
   );
