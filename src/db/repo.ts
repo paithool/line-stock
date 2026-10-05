@@ -510,8 +510,18 @@ export async function createProduct(
   return row!;
 }
 
-async function nextSku(db: D1Database): Promise<string> {
-  const row = await db.prepare("SELECT COUNT(*) AS c FROM products").first<{ c: number }>();
+async function nextSku(
+  db: D1Database,
+  storeId: number,
+): Promise<string> {
+  const row = await db
+  .prepare(
+    `SELECT COUNT(*) AS c
+     FROM products
+     WHERE store_id = ?`,
+  )
+  .bind(storeId)
+  .first<{ c: number }>();
   return `SKU-${String((row?.c ?? 0) + 1).padStart(4, '0')}`;
 }
 
