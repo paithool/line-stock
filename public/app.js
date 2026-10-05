@@ -501,6 +501,7 @@ async function openAdminView() {
       : '-';
 
   await refreshAdminUsers();
+   await refreshAdminStores();
 }
 
 async function loadProducts() {
