@@ -46,6 +46,10 @@ api.use('/*', requireAuth);
 api.get('/me', (c) => c.json(c.get('user')));
 
 /* ---------------------------------------------------------- admin users */
+api.get('/admin/stores', requireAdmin, async (c) => {
+  const stores = await repo.listStores(c.env.DB);
+  return c.json({ stores });
+});
 
 api.get('/admin/users', requireAdmin, async (c) => {
   const users = await repo.listWebUsers(c.env.DB);
