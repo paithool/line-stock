@@ -14,6 +14,38 @@ import {
 
 /* ------------------------------------------------------------------ users */
 
+/* ----------------------------------------------------------------- stores */
+
+export interface Store {
+  id: number;
+  code: string;
+  name: string;
+  active: number;
+  created_at: string;
+}
+
+export async function listStores(
+  db: D1Database,
+): Promise<Store[]> {
+  const { results } =
+    await db
+      .prepare(
+        `
+        SELECT
+          id,
+          code,
+          name,
+          active,
+          created_at
+        FROM stores
+        ORDER BY id
+        `,
+      )
+      .all<Store>();
+
+  return results ?? [];
+}
+
 /* -------------------------------------------------------------- locations */
 
 export async function listLocations(
