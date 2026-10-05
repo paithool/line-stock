@@ -464,7 +464,15 @@ export async function createProduct(
 ): Promise<Product> {
   if (!input.name?.trim()) throw new AppError('กรุณาระบุชื่อสินค้า');
   const sku = input.sku?.trim() || (await nextSku(db));
-  const dup = await db.prepare('SELECT id FROM products WHERE sku = ?').bind(sku).first();
+  const dup = await db
+  .prepare(
+    `SELECT id
+     FROM products
+     WHERE store_id = ?
+       AND sku = ?`,
+  )
+  .bind(storeId, sku)
+  .first();
   if (dup) throw new AppError(`รหัสสินค้า ${sku} ถูกใช้ไปแล้ว`);
   if (input.barcode?.trim()) {
     const dupBc = await db.prepare('SELECT id FROM products WHERE barcode = ?').bind(input.barcode.trim()).first();
