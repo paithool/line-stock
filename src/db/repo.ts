@@ -700,16 +700,24 @@ export interface LevelRow {
   qty: number;
 }
 
-export async function getLevels(db: D1Database, productId: number): Promise<LevelRow[]> {
+export async function getLevels(
+  db: D1Database,
+  storeId: number,
+  productId: number,
+): Promise<LevelRow[]> {
   const { results } = await db
     .prepare(
       `SELECT l.id AS location_id, l.code, l.name, COALESCE(s.qty, 0) AS qty
        FROM locations l
-       LEFT JOIN stock_levels s ON s.location_id = l.id AND s.product_id = ?
+       LEFT JOIN stock_levels s
+  ON s.location_id = l.id
+ AND s.product_id = ?
+ AND s.store_id = ?
        WHERE l.active = 1
+       AND l.store_id = ?
        ORDER BY l.is_default DESC, l.code`,
     )
-    .bind(productId)
+    .bind(productId, storeId, storeId)
     .all<LevelRow>();
   return results ?? [];
 }
