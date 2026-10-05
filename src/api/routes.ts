@@ -51,6 +51,46 @@ api.get('/admin/stores', requireAdmin, async (c) => {
   return c.json({ stores });
 });
 
+api.post('/admin/stores', requireAdmin, async (c) => {
+  const body = await c.req.json<{
+    code?: string;
+    name?: string;
+  }>();
+
+  const code = body.code?.trim() ?? '';
+  const name = body.name?.trim() ?? '';
+
+  if (!code || !name) {
+    return c.json(
+      { error: 'กรุณาระบุรหัสร้านและชื่อร้าน' },
+      400,
+    );
+  }
+
+  const result = await c.env.DB
+    .prepare(
+      `
+      INSERT INTO stores (
+        code,
+        name
+      )
+      VALUES (?, ?)
+      `,
+    )
+    .bind(code, name)
+    .run();
+
+  return c.json(
+    {
+      id: result.meta.last_row_id,
+      code,
+      name,
+      active: 1,
+    },
+    201,
+  );
+});
+
 api.get('/admin/users', requireAdmin, async (c) => {
   const users = await repo.listWebUsers(c.env.DB);
 
