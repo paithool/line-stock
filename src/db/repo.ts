@@ -425,7 +425,15 @@ export async function getProduct(
   storeId: number,
   id: number,
 ): Promise<Product | null> {
-  return db.prepare('SELECT * FROM products WHERE id = ?').bind(id).first<Product>();
+  return db
+  .prepare(
+    `SELECT *
+     FROM products
+     WHERE id = ?
+       AND store_id = ?`,
+  )
+  .bind(id, storeId)
+  .first<Product>();
 }
 
 export async function getProductByBarcode(db: D1Database, barcode: string): Promise<Product | null> {
