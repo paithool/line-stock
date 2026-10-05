@@ -875,6 +875,7 @@ export interface MovementResult {
 /** เบิกออก */
 export async function issue(
   db: D1Database,
+  storeId: number,
   productId: number,
   locationId: number,
   qty: number,
@@ -883,11 +884,18 @@ export async function issue(
 ): Promise<MovementResult> {
   if (qty <= 0) throw new AppError('จำนวนต้องมากกว่า 0');
   const ref = makeRef('OUT');
-  const balance = await addStock(db, productId, locationId, -qty);
+  const balance = await addStock(
+  db,
+  storeId,
+  productId,
+  locationId,
+  -qty,
+);
   await logMovement(db, {
+    storeId,
     ref, type: 'issue', productId, locationId, qty, delta: -qty, balanceAfter: balance, note, actor,
   });
-  return { ref, balanceAfter: balance, total: await totalQty(db, productId) };
+  return { ref, balanceAfter: balance, total: await totalQty(db, storeId, productId) };
 }
 
 /** รับเข้า */
