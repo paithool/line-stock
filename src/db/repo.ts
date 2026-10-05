@@ -833,6 +833,7 @@ async function logMovement(
   args: {
     ref: string;
     type: MovementType;
+    storeId: number;
     productId: number;
     locationId: number;
     qty: number;
@@ -845,10 +846,11 @@ async function logMovement(
   await db
     .prepare(
       `INSERT INTO movements
- (ref, type, product_id, location_id, qty, delta, balance_after, note, actor_name, source)
- VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+ (store_id, ref, type, product_id, location_id, qty, delta, balance_after, note, actor_name, source)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
+      args.storeId,
       args.ref,
       args.type,
       args.productId,
