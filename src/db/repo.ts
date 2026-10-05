@@ -1059,8 +1059,18 @@ export async function transfer(
   /*
    * อ่านยอดปัจจุบันก่อนทำรายการ
    */
-  const fromBefore = await getQty(db, productId, fromId);
-  const toBefore = await getQty(db, productId, toId);
+  const fromBefore = await getQty(
+  db,
+  storeId,
+  productId,
+  fromId,
+);
+  const toBefore = await getQty(
+  db,
+  storeId,
+  productId,
+  toId,
+);
 
   if (fromBefore < qty) {
     throw new AppError(`สต๊อกไม่พอ (คงเหลือ ${fromBefore})`);
