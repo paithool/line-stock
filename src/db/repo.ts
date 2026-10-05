@@ -722,14 +722,26 @@ export async function getLevels(
   return results ?? [];
 }
 
-export async function getQty(db: D1Database, productId: number, locationId: number): Promise<number> {
+
+export async function getQty(
+  db: D1Database,
+  storeId: number,
+  productId: number,
+  locationId: number,
+): Promise<number> {
   const row = await db
-    .prepare('SELECT qty FROM stock_levels WHERE product_id = ? AND location_id = ?')
-    .bind(productId, locationId)
+    .prepare(
+      `SELECT qty
+       FROM stock_levels
+       WHERE store_id = ?
+         AND product_id = ?
+         AND location_id = ?`,
+    )
+    .bind(storeId, productId, locationId)
     .first<{ qty: number }>();
+
   return row?.qty ?? 0;
 }
-
 export async function totalQty(db: D1Database, productId: number): Promise<number> {
   const row = await db
     .prepare('SELECT COALESCE(SUM(qty), 0) AS q FROM stock_levels WHERE product_id = ?')
