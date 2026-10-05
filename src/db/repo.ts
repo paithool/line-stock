@@ -463,7 +463,7 @@ export async function createProduct(
   input: Partial<Product>,
 ): Promise<Product> {
   if (!input.name?.trim()) throw new AppError('กรุณาระบุชื่อสินค้า');
-  const sku = input.sku?.trim() || (await nextSku(db));
+  const sku = input.sku?.trim() || (await nextSku(db, storeId));
   const dup = await db
   .prepare(
     `SELECT id
