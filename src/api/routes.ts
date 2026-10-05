@@ -189,7 +189,17 @@ api.get('/summary', async (c) => {
 
 /* ------------------------------------------------------------ locations */
 
-api.get('/locations', async (c) => c.json(await repo.listLocations(c.env.DB, false)));
+api.get('/locations', async (c) => {
+  const user = c.get('user');
+
+  return c.json(
+    await repo.listLocations(
+      c.env.DB,
+      user.store_id,
+      false,
+    ),
+  );
+});
 
 api.post('/locations', async (c) => {
   const body = await c.req.json<{ code: string; name: string; is_default?: boolean }>();
