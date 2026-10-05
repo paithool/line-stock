@@ -525,8 +525,13 @@ async function nextSku(
   return `SKU-${String((row?.c ?? 0) + 1).padStart(4, '0')}`;
 }
 
-export async function updateProduct(db: D1Database, id: number, patch: Partial<Product>): Promise<Product | null> {
-  const current = await getProduct(db, id);
+export async function updateProduct(
+  db: D1Database,
+  storeId: number,
+  id: number,
+  patch: Partial<Product>,
+): Promise<Product | null> {
+  const current = await getProduct(db, storeId, id);
   if (!current) throw new AppError('ไม่พบสินค้า', 404);
     const sku = (patch.sku ?? current.sku).trim();
 
