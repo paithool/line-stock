@@ -1021,9 +1021,13 @@ export async function transfer(
   // ตรวจสอบคลังปลายทาง
   const toLocation = await db
     .prepare(
-      'SELECT id FROM locations WHERE id = ? AND active = 1',
+      `SELECT id
+ FROM locations
+ WHERE id = ?
+   AND store_id = ?
+   AND active = 1`,
     )
-    .bind(toId)
+    .bind(toId, storeId)
     .first();
 
   if (!toLocation) {
@@ -1035,18 +1039,21 @@ export async function transfer(
     db
       .prepare(
         `INSERT OR IGNORE INTO stock_levels
-         (product_id, location_id, qty)
-         VALUES (?, ?, 0)`,
+ (store_id, product_id, location_id, qty)
+ VALUES (?, ?, ?, 0)`,
+         
       )
-      .bind(productId, fromId),
+      .bind(storeId, productId, fromId)
 
     db
       .prepare(
         `INSERT OR IGNORE INTO stock_levels
-         (product_id, location_id, qty)
-         VALUES (?, ?, 0)`,
+ (store_id, product_id, location_id, qty)
+ VALUES (?, ?, ?, 0)`,
+         
+         
       )
-      .bind(productId, toId),
+      .bind(storeId, productId, toId)
   ]);
 
   /*
