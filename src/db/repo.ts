@@ -613,13 +613,14 @@ export async function archiveProduct(
   }
 
   const { results } = await db
-    .prepare(
-      `SELECT location_id, qty
-       FROM stock_levels
-       WHERE product_id = ?`,
-    )
-    .bind(id)
-    .all<{ location_id: number; qty: number }>();
+  .prepare(
+    `SELECT location_id, qty
+     FROM stock_levels
+     WHERE product_id = ?
+       AND store_id = ?`,
+  )
+  .bind(id, storeId)
+  .all<{ location_id: number; qty: number }>();
 
   const ref = makeRef('ARC');
 
@@ -630,13 +631,14 @@ export async function archiveProduct(
     statements.push(
       db
         .prepare(
-          `UPDATE stock_levels
-           SET qty = 0,
-               updated_at = datetime('now')
-           WHERE product_id = ?
-             AND location_id = ?`,
+          UPDATE stock_levels
+SET qty = 0,
+    updated_at = datetime('now')
+WHERE product_id = ?
+  AND location_id = ?
+  AND store_id = ?
         )
-        .bind(id, row.location_id),
+        .bind(id, row.location_id, storeId)
     );
 
     // บันทึกประวัติการนำสินค้าออกจากระบบ
