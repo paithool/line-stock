@@ -920,7 +920,7 @@ export async function receive(
   await logMovement(db, {
     storeId, ref, type: 'receive', productId, locationId, qty, delta: qty, balanceAfter: balance, note, actor,
   });
-  return { ref, balanceAfter: balance, total: await totalQty(db, productId) };
+  return { ref, balanceAfter: balance, total: await totalQty(db, storeId, productId) };
 }
 
 /** ปรับยอดให้เท่ากับจำนวนที่นับได้จริง */
