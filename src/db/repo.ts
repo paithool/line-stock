@@ -537,9 +537,15 @@ export async function updateProduct(
 
   if (sku !== current.sku) {
     const dupSku = await db
-      .prepare('SELECT id FROM products WHERE sku = ? AND id != ?')
-      .bind(sku, id)
-      .first();
+  .prepare(
+    `SELECT id
+     FROM products
+     WHERE store_id = ?
+       AND sku = ?
+       AND id != ?`,
+  )
+  .bind(storeId, sku, id)
+  .first();
 
     if (dupSku) {
       throw new AppError(`รหัสสินค้า ${sku} ถูกใช้ไปแล้ว`);
