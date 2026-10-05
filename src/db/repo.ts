@@ -379,8 +379,12 @@ export async function listProducts(
   } = {},
 ): Promise<ProductWithStock[]> {
   const limit = opts.limit ?? 200;
-  const binds: unknown[] = [];
-  const where: string[] = ['p.active = 1'];
+  const binds: unknown[] = [storeId];
+const where: string[] = [
+  'p.active = 1',
+  'p.store_id = ?',
+];
+  
 
   if (opts.q && opts.q.trim()) {
     where.push('(LOWER(p.name) LIKE ? OR LOWER(p.sku) LIKE ? OR LOWER(p.category) LIKE ? OR p.barcode LIKE ?)');
