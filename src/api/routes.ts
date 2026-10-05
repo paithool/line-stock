@@ -79,6 +79,7 @@ return c.json(
   },
   201,
 );
+  });
 
 api.get('/admin/users', requireAdmin, async (c) => {
   const users = await repo.listWebUsers(c.env.DB);
