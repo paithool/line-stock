@@ -95,6 +95,7 @@ api.post('/admin/users', requireAdmin, async (c) => {
     displayName?: string;
     password?: string;
     role?: string;
+    storeId?: number;
   }>();
 
   return createWebUserByAdmin(
@@ -103,6 +104,7 @@ api.post('/admin/users', requireAdmin, async (c) => {
     body.displayName ?? '',
     body.password ?? '',
     body.role ?? 'user',
+    body.storeId,
   );
 });
 
