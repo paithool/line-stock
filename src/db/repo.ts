@@ -2593,16 +2593,20 @@ export async function getWebUserById(
     .prepare(
       `
       SELECT
-        id,
-        username,
-        display_name,
-        active,
-        role,
-        store_id,
-        created_at,
-        last_login_at
-      FROM web_users
-      WHERE id = ?
+  w.id,
+  w.username,
+  w.display_name,
+  w.active,
+  w.role,
+  w.store_id,
+  s.code AS store_code,
+  s.name AS store_name,
+  w.created_at,
+  w.last_login_at
+FROM web_users w
+LEFT JOIN stores s
+  ON s.id = w.store_id
+WHERE w.id = ?
       `,
     )
     .bind(id)
