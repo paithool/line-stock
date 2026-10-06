@@ -444,6 +444,9 @@ export async function loginWebUser(
     name: user.display_name,
     role: user.role,
     store_id: user.store_id,
+    store_code: user.store_code,
+    store_name: user.store_name,
+    
   };
 
   return c.json(
