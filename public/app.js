@@ -1739,6 +1739,25 @@ $('#adminCreateUserBtn')?.addEventListener(
   }
 );
 
+$('#adminRefreshStoresBtn')?.addEventListener(
+  'click',
+  () => refreshAdminStores()
+);
+
+$('#adminAddStoreBtn')?.addEventListener(
+  'click',
+  () => {
+    const name = prompt('กรอกชื่อร้านค้า');
+
+    if (!name || !name.trim()) {
+      return;
+    }
+
+    alert(
+      'ตอนนี้ปุ่มทำงานแล้ว แต่ระบบบันทึกร้านค้ายังไม่ได้เชื่อมต่อ Backend'
+    );
+  }
+);
 
 $('#adminRefreshUsersBtn')?.addEventListener(
   'click',
