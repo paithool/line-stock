@@ -1869,7 +1869,7 @@ $('#adminStoreList')?.addEventListener(
         button.dataset.adminEditStore,
       );
      
-adminEditingStoreId = storeId;
+    adminEditingStoreId = storeId;
     if (
       !Number.isInteger(storeId) ||
       storeId <= 0
