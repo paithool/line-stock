@@ -10,6 +10,8 @@ export interface AuthUser {
   name: string;
   role: string;
   store_id: number;
+  store_code: string | null;
+  store_name: string | null;
 }
 
 const SESSION_COOKIE = 'web_session';
