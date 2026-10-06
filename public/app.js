@@ -173,6 +173,11 @@ function paintUser() {
   $('#currentUsername').textContent =
     state.me?.username ?? '-';
 
+   $('#currentStore').textContent =
+  state.me?.store_name
+    ? `${state.me.store_name} (${state.me.store_code ?? '-'})`
+    : '-';
+   
   $('#editDisplayName').value =
     state.me?.name ?? '';
 
