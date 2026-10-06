@@ -486,7 +486,38 @@ async function refreshAdminStores() {
 });   
 }
 
-      
+      async function loadAdminStoreOptions() {
+  const select = $('#adminNewStore');
+
+  if (!select) return;
+
+  try {
+    const data =
+      await api('/admin/stores');
+
+    const stores =
+      data.stores.filter(
+        (store) =>
+          Number(store.active) === 1,
+      );
+
+    select.innerHTML =
+      '<option value="">-- เลือกร้านค้า --</option>' +
+      stores
+        .map(
+          (store) => `
+            <option value="${store.id}">
+              ${esc(store.name)} (${esc(store.code)})
+            </option>
+          `,
+        )
+        .join('');
+
+  } catch (err) {
+    select.innerHTML =
+      '<option value="">โหลดร้านค้าไม่สำเร็จ</option>';
+  }
+}
 
       
 
