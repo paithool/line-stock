@@ -222,12 +222,19 @@ async function refreshAdminUsers() {
               </div>
 
               <div class="item__meta">
-                <span>${esc(user.username)}</span>
-                <span>·</span>
-                <span>
-                  ${user.role === 'admin'
-                    ? 'ผู้ดูแลระบบ'
-                    : 'ผู้ใช้ทั่วไป'}
+  <span>${esc(user.username)}</span>
+  <span>·</span>
+  <span>
+    ${user.role === 'admin'
+      ? 'ผู้ดูแลระบบ'
+      : 'ผู้ใช้ทั่วไป'}
+  </span>
+  <span>·</span>
+  <span>
+    ร้าน: ${esc(user.store_name || '-')}
+    ${user.store_code
+      ? `(${esc(user.store_code)})`
+      : ''}
                 </span>
               </div>
             </div>
