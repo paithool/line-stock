@@ -107,7 +107,7 @@ export async function updateStore(
       UPDATE stores
       SET
         code = ?,
-        name = ?,
+        name = ?
       WHERE id = ?
       RETURNING
         id,
