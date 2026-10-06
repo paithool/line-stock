@@ -2506,6 +2506,8 @@ export interface WebUser {
   active: number;
   role: string;
   store_id: number;
+  store_code: string | null;
+  store_name: string | null;
   created_at: string;
   last_login_at: string | null;
 }
