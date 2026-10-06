@@ -131,6 +131,55 @@ export async function updateStore(
   return result;
 }
 
+export async function updateStoreActive(
+  db: D1Database,
+  storeId: number,
+  active: number,
+): Promise<Store> {
+  if (
+    !Number.isInteger(storeId) ||
+    storeId <= 0
+  ) {
+    throw new Error('รหัสร้านไม่ถูกต้อง');
+  }
+
+  if (
+    active !== 0 &&
+    active !== 1
+  ) {
+    throw new Error('สถานะร้านไม่ถูกต้อง');
+  }
+
+  const result =
+    await db
+      .prepare(
+        `
+        UPDATE stores
+        SET active = ?
+        WHERE id = ?
+        RETURNING
+          id,
+          code,
+          name,
+          active,
+          created_at
+        `,
+      )
+      .bind(
+        active,
+        storeId,
+      )
+      .first<Store>();
+
+  if (!result) {
+    throw new Error(
+      'ไม่พบร้านค้าที่ต้องการเปลี่ยนสถานะ',
+    );
+  }
+
+  return result;
+}
+
 /* -------------------------------------------------------------- locations */
 
 export async function listLocations(
