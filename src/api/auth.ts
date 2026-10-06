@@ -421,6 +421,48 @@ export async function loginWebUser(
     );
   }
 
+// ตรวจสอบสถานะร้านค้า
+// Admin ยังสามารถเข้าได้แม้ร้านจะปิด
+if (user.role !== 'admin') {
+  const store =
+    await c.env.DB
+      .prepare(
+        `
+        SELECT
+          id,
+          active
+        FROM stores
+        WHERE id = ?
+        LIMIT 1
+        `,
+      )
+      .bind(user.store_id)
+      .first<{
+        id: number;
+        active: number;
+      }>();
+
+  if (!store) {
+    return c.json(
+      {
+        error:
+          'ไม่พบร้านค้าที่ผู้ใช้นี้สังกัด',
+      },
+      403,
+    );
+  }
+
+  if (Number(store.active) !== 1) {
+    return c.json(
+      {
+        error:
+          'คลังนี้ปิดให้บริการ กรุณาติดต่อผู้ดูแลระบบ',
+      },
+      403,
+    );
+  }
+}
+  
   const token = createSessionToken();
   const tokenHash = await sha256(token);
   const expiresAt =
