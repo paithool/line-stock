@@ -1768,6 +1768,7 @@ $('#adminCreateUserBtn')?.addEventListener(
       $('#adminNewDisplayName').value = '';
       $('#adminNewPassword').value = '';
       $('#adminNewRole').value = 'user';
+      $('#adminNewStore').value = '';
 
       await refreshAdminUsers();
 
