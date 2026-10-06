@@ -766,6 +766,7 @@ export async function createWebUserByAdmin(
   displayName: string,
   password: string,
   role: string,
+  storeId?: number,
 ): Promise<Response> {
   const cleanUsername =
     username.trim();
@@ -841,14 +842,70 @@ export async function createWebUserByAdmin(
   const passwordHash =
     await hashPassword(password);
 
-  // ใช้ร้านเดียวกับ Admin ที่กำลัง Login
   const currentUser =
     c.get('user');
+
+  const assignedStoreId =
+    storeId ??
+    currentUser.store_id;
+
+  if (
+    !Number.isInteger(
+      assignedStoreId,
+    ) ||
+    assignedStoreId <= 0
+  ) {
+    return c.json(
+      {
+        error:
+          'ร้านค้าที่เลือกไม่ถูกต้อง',
+      },
+      400,
+    );
+  }
+
+  const store =
+    await c.env.DB
+      .prepare(
+        `
+        SELECT
+          id,
+          active
+        FROM stores
+        WHERE id = ?
+        LIMIT 1
+        `,
+      )
+      .bind(assignedStoreId)
+      .first<{
+        id: number;
+        active: number;
+      }>();
+
+  if (!store) {
+    return c.json(
+      {
+        error:
+          'ไม่พบร้านค้าที่เลือก',
+      },
+      404,
+    );
+  }
+
+  if (Number(store.active) !== 1) {
+    return c.json(
+      {
+        error:
+          'ร้านค้าที่เลือกถูกปิดใช้งาน',
+      },
+      400,
+    );
+  }
 
   const user =
     await repo.createWebUser(
       c.env.DB,
-      currentUser.store_id,
+      assignedStoreId,
       cleanUsername,
       passwordHash,
       cleanDisplayName,
@@ -866,8 +923,14 @@ export async function createWebUserByAdmin(
         name: user.display_name,
         role: user.role,
         active: user.active,
+        store_id: user.store_id,
       },
     },
     201,
   );
 }
+
+  
+    
+
+  
