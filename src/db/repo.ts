@@ -108,7 +108,6 @@ export async function updateStore(
       SET
         code = ?,
         name = ?,
-        updated_at = datetime('now')
       WHERE id = ?
       RETURNING
         id,
