@@ -1850,6 +1850,7 @@ $('#adminAddStoreBtn')?.addEventListener(
     }
   }
 );
+let adminEditingStoreId = null;
 
 $('#adminStoreList')?.addEventListener(
   'click',
@@ -1867,7 +1868,8 @@ $('#adminStoreList')?.addEventListener(
       Number(
         button.dataset.adminEditStore,
       );
-
+     
+adminEditingStoreId = storeId;
     if (
       !Number.isInteger(storeId) ||
       storeId <= 0
