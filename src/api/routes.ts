@@ -141,6 +141,54 @@ api.put('/admin/stores/:id', requireAdmin, async (c) => {
   }
 });
 
+api.put('/admin/stores/:id/active', requireAdmin, async (c) => {
+  const storeId = Number(c.req.param('id'));
+
+  if (
+    !Number.isInteger(storeId) ||
+    storeId <= 0
+  ) {
+    return c.json(
+      { error: 'รหัสร้านไม่ถูกต้อง' },
+      400,
+    );
+  }
+
+  const body = await c.req.json<{
+    active?: number | boolean;
+  }>();
+
+  const active =
+    body.active === true ||
+    Number(body.active) === 1
+      ? 1
+      : 0;
+
+  try {
+    const store =
+      await repo.updateStoreActive(
+        c.env.DB,
+        storeId,
+        active,
+      );
+
+    return c.json({
+      store,
+    });
+
+  } catch (err) {
+    return c.json(
+      {
+        error:
+          err instanceof Error
+            ? err.message
+            : 'ไม่สามารถเปลี่ยนสถานะร้านค้าได้',
+      },
+      400,
+    );
+  }
+});
+
 api.get('/admin/users', requireAdmin, async (c) => {
   const users = await repo.listWebUsers(c.env.DB);
 
