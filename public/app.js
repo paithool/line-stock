@@ -2008,6 +2008,25 @@ $('#adminSaveStoreBtn')?.addEventListener(
   },
 );
 
+$('#adminCancelStoreEditBtn')?.addEventListener(
+  'click',
+  () => {
+    $('#adminStoreEdit').hidden =
+      true;
+
+    $('#adminStoreEditMessage').hidden =
+      true;
+
+    $('#adminEditStoreCode').value =
+      '';
+
+    $('#adminEditStoreName').value =
+      '';
+
+    adminEditingStoreId = null;
+  },
+);
+
 $('#adminRefreshUsersBtn')?.addEventListener(
   'click',
   () => refreshAdminUsers()
