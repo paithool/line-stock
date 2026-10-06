@@ -84,6 +84,54 @@ export async function createStore(
   return result;
 }
 
+export async function updateStore(
+  db: D1Database,
+  storeId: number,
+  code: string,
+  name: string,
+): Promise<Store> {
+  const cleanCode = code.trim();
+  const cleanName = name.trim();
+
+  if (!Number.isInteger(storeId) || storeId <= 0) {
+    throw new Error('รหัสร้านไม่ถูกต้อง');
+  }
+
+  if (!cleanCode || !cleanName) {
+    throw new Error('กรุณาระบุรหัสร้านและชื่อร้าน');
+  }
+
+  const result = await db
+    .prepare(
+      `
+      UPDATE stores
+      SET
+        code = ?,
+        name = ?,
+        updated_at = datetime('now')
+      WHERE id = ?
+      RETURNING
+        id,
+        code,
+        name,
+        active,
+        created_at
+      `,
+    )
+    .bind(
+      cleanCode,
+      cleanName,
+      storeId,
+    )
+    .first<Store>();
+
+  if (!result) {
+    throw new Error('ไม่พบร้านค้าที่ต้องการแก้ไข');
+  }
+
+  return result;
+}
+
 /* -------------------------------------------------------------- locations */
 
 export async function listLocations(
