@@ -1872,11 +1872,100 @@ $('#adminAddStoreBtn')?.addEventListener(
     }
   }
 );
+
+
 let adminEditingStoreId = null;
 
 $('#adminStoreList')?.addEventListener(
   'click',
   async (event) => {
+
+    /* --------------------------------------------------
+       ปุ่มเปิด / ปิดคลัง
+    -------------------------------------------------- */
+
+    const toggleButton =
+      event.target.closest(
+        '[data-admin-toggle-store]',
+      );
+
+    if (toggleButton) {
+
+      const storeId =
+        Number(
+          toggleButton.dataset.adminToggleStore,
+        );
+
+      if (
+        !Number.isInteger(storeId) ||
+        storeId <= 0
+      ) {
+        return;
+      }
+
+      try {
+
+        const data =
+          await api('/admin/stores');
+
+        const store =
+          data.stores.find(
+            (item) =>
+              Number(item.id) === storeId,
+          );
+
+        if (!store) {
+          toast(
+            'ไม่พบร้านค้าที่ต้องการเปลี่ยนสถานะ',
+            'error',
+          );
+          return;
+        }
+
+        const nextActive =
+          Number(store.active) === 1
+            ? 0
+            : 1;
+
+        await api(
+          `/admin/stores/${storeId}/active`,
+          {
+            method: 'PUT',
+            body: JSON.stringify({
+              active: nextActive,
+            }),
+          },
+        );
+
+        toast(
+          nextActive === 1
+            ? 'เปิดคลังเรียบร้อยแล้ว'
+            : 'ปิดคลังเรียบร้อยแล้ว',
+          'ok',
+        );
+
+        await refreshAdminStores();
+
+        await loadAdminStoreOptions();
+
+      } catch (err) {
+
+        toast(
+          err.message ||
+            'ไม่สามารถเปลี่ยนสถานะคลังได้',
+          'error',
+        );
+      }
+
+      return;
+    }
+
+
+    /* --------------------------------------------------
+       ปุ่มแก้ไขร้านค้า
+       ส่วนเดิมของคุณ
+    -------------------------------------------------- */
+
     const button =
       event.target.closest(
         '[data-admin-edit-store]',
@@ -1890,8 +1979,9 @@ $('#adminStoreList')?.addEventListener(
       Number(
         button.dataset.adminEditStore,
       );
-     
+
     adminEditingStoreId = storeId;
+
     if (
       !Number.isInteger(storeId) ||
       storeId <= 0
@@ -1900,6 +1990,7 @@ $('#adminStoreList')?.addEventListener(
     }
 
     try {
+
       const data =
         await api('/admin/stores');
 
@@ -1932,6 +2023,7 @@ $('#adminStoreList')?.addEventListener(
       $('#adminEditStoreCode').focus();
 
     } catch (err) {
+
       toast(
         err.message ||
           'ไม่สามารถโหลดข้อมูลร้านค้าได้',
@@ -1940,6 +2032,7 @@ $('#adminStoreList')?.addEventListener(
     }
   },
 );
+
 
 $('#adminSaveStoreBtn')?.addEventListener(
   'click',
