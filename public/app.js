@@ -1731,6 +1731,17 @@ $('#adminCreateUserBtn')?.addEventListener(
       message.hidden = false;
       return;
     }
+     if (
+  !Number.isInteger(storeId) ||
+  storeId <= 0
+) {
+  message.textContent =
+    'กรุณาเลือกร้านค้า';
+
+  message.style.color = '#ef4444';
+  message.hidden = false;
+  return;
+}
 
     btn.disabled = true;
     btn.textContent = 'กำลังสร้างบัญชี...';
