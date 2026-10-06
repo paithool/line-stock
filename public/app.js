@@ -339,6 +339,18 @@ async function refreshAdminStores() {
   >
     แก้ไข
   </button>
+
+  <button
+  type="button"
+  class="btn btn--ghost"
+  data-admin-toggle-store="${store.id}"
+>
+  ${
+    Number(store.active) === 1
+      ? 'ปิดคลัง'
+      : 'เปิดคลัง'
+     }
+</button>
 </div>
             
           </div>
