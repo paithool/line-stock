@@ -1880,7 +1880,7 @@ $('#adminStoreList')?.addEventListener(
   'click',
   async (event) => {
      
-console.log('ADMIN STORE CLICK', event.target);
+
     /* --------------------------------------------------
        ปุ่มเปิด / ปิดคลัง
     -------------------------------------------------- */
