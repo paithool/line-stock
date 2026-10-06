@@ -1702,6 +1702,9 @@ $('#adminCreateUserBtn')?.addEventListener(
 
     const role =
       $('#adminNewRole').value;
+     
+     const storeId =
+      Number($('#adminNewStore').value);
 
     const message =
       $('#adminCreateUserMessage');
