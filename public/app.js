@@ -1746,16 +1746,42 @@ $('#adminRefreshStoresBtn')?.addEventListener(
 
 $('#adminAddStoreBtn')?.addEventListener(
   'click',
-  () => {
+  async () => {
+    const code = prompt('กรอกรหัสร้านค้า');
+
+    if (!code || !code.trim()) {
+      return;
+    }
+
     const name = prompt('กรอกชื่อร้านค้า');
 
     if (!name || !name.trim()) {
       return;
     }
 
-    alert(
-      'ตอนนี้ปุ่มทำงานแล้ว แต่ระบบบันทึกร้านค้ายังไม่ได้เชื่อมต่อ Backend'
-    );
+    try {
+      await api('/admin/stores', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: code.trim(),
+          name: name.trim(),
+        }),
+      });
+
+      toast(
+        'เพิ่มร้านค้าเรียบร้อยแล้ว',
+        'ok',
+      );
+
+      await refreshAdminStores();
+
+    } catch (err) {
+      toast(
+        err.message ||
+          'เพิ่มร้านค้าไม่สำเร็จ',
+        'error',
+      );
+    }
   }
 );
 
