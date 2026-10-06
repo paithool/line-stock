@@ -307,19 +307,30 @@ async function refreshAdminStores() {
               </div>
             </div>
 
-            <span
-              class="badge ${
-                Number(store.active) === 1
-                  ? 'badge--ok'
-                  : 'badge--out'
-              }"
-            >
-              ${
-                Number(store.active) === 1
-                  ? 'ใช้งาน'
-                  : 'ปิดใช้งาน'
-              }
-            </span>
+<div style="display:flex;align-items:center;gap:8px;">
+  <span
+    class="badge ${
+      Number(store.active) === 1
+        ? 'badge--ok'
+        : 'badge--out'
+    }"
+  >
+    ${
+      Number(store.active) === 1
+        ? 'ใช้งาน'
+        : 'ปิดใช้งาน'
+    }
+  </span>
+
+  <button
+    type="button"
+    class="btn btn--ghost"
+    data-admin-edit-store="${store.id}"
+  >
+    แก้ไข
+  </button>
+</div>
+            
           </div>
         `).join('')
       : '<div class="empty">ยังไม่มีร้านค้า</div>';
