@@ -1919,6 +1919,95 @@ $('#adminStoreList')?.addEventListener(
   },
 );
 
+$('#adminSaveStoreBtn')?.addEventListener(
+  'click',
+  async () => {
+    if (!adminEditingStoreId) {
+      toast(
+        'กรุณาเลือกร้านค้าที่ต้องการแก้ไข',
+        'error',
+      );
+      return;
+    }
+
+    const code =
+      $('#adminEditStoreCode')
+        .value
+        .trim();
+
+    const name =
+      $('#adminEditStoreName')
+        .value
+        .trim();
+
+    const message =
+      $('#adminStoreEditMessage');
+
+    if (!code || !name) {
+      message.textContent =
+        'กรุณาระบุรหัสร้านและชื่อร้าน';
+
+      message.style.color =
+        '#ef4444';
+
+      message.hidden = false;
+      return;
+    }
+
+    const btn =
+      $('#adminSaveStoreBtn');
+
+    btn.disabled = true;
+    btn.textContent =
+      'กำลังบันทึก...';
+
+    try {
+      await api(
+        `/admin/stores/${adminEditingStoreId}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            code,
+            name,
+          }),
+        },
+      );
+
+      message.textContent =
+        'แก้ไขร้านค้าเรียบร้อยแล้ว';
+
+      message.style.color =
+        '#16a34a';
+
+      message.hidden = false;
+
+      await refreshAdminStores();
+
+      await loadAdminStoreOptions();
+
+      setTimeout(() => {
+        $('#adminStoreEdit').hidden =
+          true;
+      }, 500);
+
+    } catch (err) {
+      message.textContent =
+        err.message ||
+        'ไม่สามารถแก้ไขร้านค้าได้';
+
+      message.style.color =
+        '#ef4444';
+
+      message.hidden = false;
+
+    } finally {
+      btn.disabled = false;
+      btn.textContent =
+        '💾 บันทึกการแก้ไข';
+    }
+  },
+);
+
 $('#adminRefreshUsersBtn')?.addEventListener(
   'click',
   () => refreshAdminUsers()
