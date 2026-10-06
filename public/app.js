@@ -313,7 +313,7 @@ async function refreshAdminStores() {
               </div>
 
               <div class="item__meta">
-                <span>${esc(store.code)}</span>
+                <span>${esc(store.code)} · ${esc(store.name)}</span>
               </div>
             </div>
 
