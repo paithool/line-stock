@@ -81,6 +81,66 @@ return c.json(
 );
   });
 
+api.put('/admin/stores/:id', requireAdmin, async (c) => {
+  const storeId = Number(c.req.param('id'));
+
+  if (
+    !Number.isInteger(storeId) ||
+    storeId <= 0
+  ) {
+    return c.json(
+      { error: 'รหัสร้านไม่ถูกต้อง' },
+      400,
+    );
+  }
+
+  const body = await c.req.json<{
+    code?: string;
+    name?: string;
+  }>();
+
+  const code =
+    body.code?.trim() ?? '';
+
+  const name =
+    body.name?.trim() ?? '';
+
+  if (!code || !name) {
+    return c.json(
+      {
+        error:
+          'กรุณาระบุรหัสร้านและชื่อร้าน',
+      },
+      400,
+    );
+  }
+
+  try {
+    const store =
+      await repo.updateStore(
+        c.env.DB,
+        storeId,
+        code,
+        name,
+      );
+
+    return c.json({
+      store,
+    });
+
+  } catch (err) {
+    return c.json(
+      {
+        error:
+          err instanceof Error
+            ? err.message
+            : 'ไม่สามารถแก้ไขร้านค้าได้',
+      },
+      400,
+    );
+  }
+});
+
 api.get('/admin/users', requireAdmin, async (c) => {
   const users = await repo.listWebUsers(c.env.DB);
 
