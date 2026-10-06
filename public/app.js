@@ -1754,6 +1754,7 @@ $('#adminCreateUserBtn')?.addEventListener(
           displayName,
           password,
           role,
+         storeId,
         }),
       });
 
