@@ -1851,6 +1851,72 @@ $('#adminAddStoreBtn')?.addEventListener(
   }
 );
 
+$('#adminStoreList')?.addEventListener(
+  'click',
+  async (event) => {
+    const button =
+      event.target.closest(
+        '[data-admin-edit-store]',
+      );
+
+    if (!button) {
+      return;
+    }
+
+    const storeId =
+      Number(
+        button.dataset.adminEditStore,
+      );
+
+    if (
+      !Number.isInteger(storeId) ||
+      storeId <= 0
+    ) {
+      return;
+    }
+
+    try {
+      const data =
+        await api('/admin/stores');
+
+      const store =
+        data.stores.find(
+          (item) =>
+            Number(item.id) === storeId,
+        );
+
+      if (!store) {
+        toast(
+          'ไม่พบร้านค้าที่ต้องการแก้ไข',
+          'error',
+        );
+        return;
+      }
+
+      $('#adminEditStoreCode').value =
+        store.code;
+
+      $('#adminEditStoreName').value =
+        store.name;
+
+      $('#adminStoreEditMessage').hidden =
+        true;
+
+      $('#adminStoreEdit').hidden =
+        false;
+
+      $('#adminEditStoreCode').focus();
+
+    } catch (err) {
+      toast(
+        err.message ||
+          'ไม่สามารถโหลดข้อมูลร้านค้าได้',
+        'error',
+      );
+    }
+  },
+);
+
 $('#adminRefreshUsersBtn')?.addEventListener(
   'click',
   () => refreshAdminUsers()
