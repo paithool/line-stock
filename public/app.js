@@ -177,6 +177,11 @@ function paintUser() {
   state.me?.store_name
     ? `${state.me.store_name} (${state.me.store_code ?? '-'})`
     : '-';
+
+$('#topbarStoreName').textContent =
+  state.me?.store_name
+    ? ` · ${state.me.store_name}`
+    : '';
    
   $('#editDisplayName').value =
     state.me?.name ?? '';
