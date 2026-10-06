@@ -510,8 +510,55 @@
     class="list"
     style="margin-top:12px;"
   ></div>
+
+<div
+  id="adminStoreEdit"
+  style="margin-top:14px;"
+  hidden
+>
+  <div class="card__head">
+    <h3 style="margin:0;">แก้ไขร้านค้า</h3>
+  </div>
+
+  <label for="adminEditStoreCode">รหัสร้าน</label>
+
+  <input
+    id="adminEditStoreCode"
+    type="text"
+    placeholder="รหัสร้าน"
+  />
+
+  <label for="adminEditStoreName">ชื่อร้าน</label>
+
+  <input
+    id="adminEditStoreName"
+    type="text"
+    placeholder="ชื่อร้าน"
+  />
+
+  <button
+    class="btn btn--block"
+    id="adminSaveStoreBtn"
+    type="button"
+  >
+    💾 บันทึกการแก้ไข
+  </button>
+
+  <button
+    class="btn btn--ghost btn--block"
+    id="adminCancelStoreEditBtn"
+    type="button"
+  >
+    ยกเลิก
+  </button>
+
+  <div
+    id="adminStoreEditMessage"
+    style="margin-top:10px;"
+    hidden
+  ></div>
 </div>
-    
+  
     <div class="card">
       <div class="card__head">
         <h2>สร้างบัญชีผู้ใช้</h2>
