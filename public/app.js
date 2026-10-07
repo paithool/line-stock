@@ -1659,6 +1659,7 @@ $('#logoutBtn').addEventListener('click', async () => {
     await api('/logout', {
       method: 'POST',
     });
+    stopAutoLogoutTimer();
 
     state.me = null;
 
