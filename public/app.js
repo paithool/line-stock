@@ -2222,7 +2222,7 @@ $('#adminLogoutBtn')?.addEventListener(
       await api('/logout', {
         method: 'POST',
       });
-
+      stopAutoLogoutTimer();
       state.me = null;
 
       $('#app').hidden = true;
