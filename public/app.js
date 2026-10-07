@@ -98,6 +98,51 @@ async function api(path, options = {}) {
   return data;
 }
 
+const AUTO_LOGOUT_MS = 60 * 60 * 1000;
+let autoLogoutTimer = null;
+
+function resetAutoLogoutTimer() {
+  if (!state.me) return;
+
+  clearTimeout(autoLogoutTimer);
+
+  autoLogoutTimer = setTimeout(() => {
+    autoLogout();
+  }, AUTO_LOGOUT_MS);
+}
+
+function stopAutoLogoutTimer() {
+  clearTimeout(autoLogoutTimer);
+  autoLogoutTimer = null;
+}
+
+async function autoLogout() {
+  if (!state.me) return;
+
+  stopAutoLogoutTimer();
+
+  try {
+    await api('/logout', {
+      method: 'POST',
+    });
+  } catch (err) {
+    console.warn('Auto logout:', err);
+  }
+
+  state.me = null;
+
+  $('#app').hidden = true;
+  $('#adminApp').hidden = true;
+  $('#loginScreen').hidden = false;
+
+  $('#loginUsername').value = '';
+  $('#loginPassword').value = '';
+  $('#loginError').textContent =
+    'ออกจากระบบอัตโนมัติ เนื่องจากไม่มีการใช้งานเกิน 1 ชั่วโมง';
+  $('#loginError').hidden = false;
+
+  $('#loginUsername').focus();
+}
 
    /* --------------------------------------------------------- bootstrap */
 
