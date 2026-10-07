@@ -1602,6 +1602,7 @@ $('#historySearchBtn').addEventListener('click', () => {
   // เก็บวันที่ไว้ใน state
   state.historyStartDate = startDate;
   state.historyEndDate = endDate;
+  state.historyMode = 'history';
 
   // โหลดประวัติใหม่
   renderHistory();
