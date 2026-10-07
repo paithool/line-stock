@@ -1,4 +1,4 @@
-const { Hono } from 'hono';
+import { Hono } from 'hono';
 import type { Env } from '../types';
 import * as repo from '../db/repo';
 import { AppError } from '../lib/util';
