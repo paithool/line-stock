@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+const { Hono } from 'hono';
 import type { Env } from '../types';
 import * as repo from '../db/repo';
 import { AppError } from '../lib/util';
@@ -323,49 +323,56 @@ api.get('/summary', async (c) => {
   const user = c.get('user');
   const storeId = user.store_id;
 
-  const [
-    summary,
-    low,
-    recent,
-    locations,
-  ] = await Promise.all([
-    repo.getSummary(
-      db,
-      storeId,
-    ),
+  const parts = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Asia/Bangkok',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).formatToParts(new Date());
 
-    repo.lowStockProducts(
-      db,
-      storeId,
-      8,
-    ),
+const dateParts = Object.fromEntries(
+  parts.map((part) => [
+    part.type,
+    part.value,
+  ]),
+);
 
-    repo.listMovements(
-  db,
-  storeId,
-  {
-    startDate: new Date().toLocaleDateString(
-      'en-CA',
-      {
-        timeZone: 'Asia/Bangkok',
-      },
-    ),
-    endDate: new Date().toLocaleDateString(
-      'en-CA',
-      {
-        timeZone: 'Asia/Bangkok',
-      },
-    ),
-    limit: 12,
-  },
-),
+const today =
+  `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 
-    repo.listLocations(
-      db,
-      storeId,
-      true,
-    ),
-  ]);
+const [
+  summary,
+  low,
+  recent,
+  locations,
+] = await Promise.all([
+  repo.getSummary(
+    db,
+    storeId,
+  ),
+
+  repo.lowStockProducts(
+    db,
+    storeId,
+    8,
+  ),
+
+  repo.listMovements(
+    db,
+    storeId,
+    {
+      startDate: today,
+      endDate: today,
+      limit: 12,
+    },
+  ),
+
+  repo.listLocations(
+    db,
+    storeId,
+    true,
+  ),
+]);
 
   const byLocation = await db
     .prepare(
