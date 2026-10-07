@@ -677,6 +677,7 @@ async function openAdminView() {
   await refreshAdminUsers();
    await refreshAdminStores();
    await loadAdminStoreOptions();
+   await loadAdminDeleteHistoryStores();
 }
 
 async function loadProducts() {
