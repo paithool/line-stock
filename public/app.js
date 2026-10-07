@@ -15,7 +15,8 @@ const state = {
   historyType: 'all',
   historyStartDate: '',
   historyEndDate: '',
-  summary: null,
+  historyMode: 'today',
+  historyMode: null,
 };
 
 const ACTIONS = {
