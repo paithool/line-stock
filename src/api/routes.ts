@@ -341,12 +341,24 @@ api.get('/summary', async (c) => {
     ),
 
     repo.listMovements(
-      db,
-      storeId,
+  db,
+  storeId,
+  {
+    startDate: new Date().toLocaleDateString(
+      'en-CA',
       {
-        limit: 12,
+        timeZone: 'Asia/Bangkok',
       },
     ),
+    endDate: new Date().toLocaleDateString(
+      'en-CA',
+      {
+        timeZone: 'Asia/Bangkok',
+      },
+    ),
+    limit: 12,
+  },
+),
 
     repo.listLocations(
       db,
