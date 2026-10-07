@@ -666,8 +666,59 @@
         class="list"
         style="margin-top:12px;"
       ></div>
-    </div>
     
+    </div>
+
+<!-- ลบประวัติการทำรายการ -->
+<div class="card">
+  <div class="card__head">
+    <h2>🗑️ ลบประวัติการทำรายการ</h2>
+  </div>
+
+  <div style="margin-top:12px;">
+
+    <label for="adminDeleteHistoryStartDate">
+      วันที่เริ่มต้น
+    </label>
+
+    <input
+      id="adminDeleteHistoryStartDate"
+      type="date"
+    />
+
+    <label
+      for="adminDeleteHistoryEndDate"
+      style="margin-top:12px;"
+    >
+      วันที่สิ้นสุด
+    </label>
+
+    <input
+      id="adminDeleteHistoryEndDate"
+      type="date"
+    />
+
+    <button
+      class="btn btn--block"
+      id="adminDeleteHistoryBtn"
+      type="button"
+      style="margin-top:16px;"
+    >
+      🗑️ ลบประวัติการทำรายการ
+    </button>
+
+    <div
+      id="adminDeleteHistoryMessage"
+      style="margin-top:10px;"
+      hidden
+    ></div>
+
+  </div>
+</div>
+  
+<div class="card">
+  <div class="card__head">
+    <h2>สร้างบัญชีผู้ใช้</h2>
   
 <div
   id="adminUserEdit"
