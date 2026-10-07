@@ -658,7 +658,7 @@ api.post('/products', async (c) => {
     locationId
   ) {
     const actor = {
-      name: user.username,
+      name: user.name,
       source: 'system' as const,
     };
 
