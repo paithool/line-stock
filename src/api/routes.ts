@@ -794,9 +794,13 @@ api.delete(
   async (c) => {
     const body =
       await c.req.json<{
+        storeId?: number;
         startDate?: string;
         endDate?: string;
       }>();
+
+    const storeId =
+      Number(body.storeId);
 
     const startDate =
       body.startDate?.trim() ?? '';
@@ -804,18 +808,25 @@ api.delete(
     const endDate =
       body.endDate?.trim() ?? '';
 
+    if (
+      !Number.isInteger(storeId) ||
+      storeId <= 0
+    ) {
+      throw new AppError(
+        'กรุณาเลือกคลังสินค้า',
+      );
+    }
+
     if (!startDate || !endDate) {
       throw new AppError(
         'กรุณาระบุวันที่เริ่มต้นและวันที่สิ้นสุด',
       );
     }
 
-    const user = c.get('user');
-
     const deleted =
       await repo.deleteMovementsByDateRange(
         c.env.DB,
-        user.store_id,
+        storeId,
         startDate,
         endDate,
       );
