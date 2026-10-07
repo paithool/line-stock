@@ -98,7 +98,7 @@ async function api(path, options = {}) {
   return data;
 }
 
-const AUTO_LOGOUT_MS = 1 * 60 * 1000;
+const AUTO_LOGOUT_MS = 60 * 60 * 1000;
 let autoLogoutTimer = null;
 
 function resetAutoLogoutTimer() {
