@@ -1498,6 +1498,7 @@ function switchTab(tab) {
   });
 
   if (tab === 'history') {
+     state.historyMode = 'today';
     renderHistory();
   }
 
