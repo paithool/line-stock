@@ -2277,6 +2277,9 @@ $('#adminRefreshUsersBtn')?.addEventListener(
 $('#adminDeleteHistoryBtn')?.addEventListener(
   'click',
   async () => {
+    const storeId =
+      $('#adminDeleteHistoryStore')?.value;
+
     const startDate =
       $('#adminDeleteHistoryStartDate')?.value;
 
@@ -2288,6 +2291,15 @@ $('#adminDeleteHistoryBtn')?.addEventListener(
 
     const btn =
       $('#adminDeleteHistoryBtn');
+
+    if (!storeId) {
+      message.textContent =
+        'กรุณาเลือกคลังสินค้าที่ต้องการลบประวัติ';
+
+      message.style.color = '#ef4444';
+      message.hidden = false;
+      return;
+    }
 
     if (!startDate || !endDate) {
       message.textContent =
@@ -2307,11 +2319,19 @@ $('#adminDeleteHistoryBtn')?.addEventListener(
       return;
     }
 
+    const storeSelect =
+      $('#adminDeleteHistoryStore');
+
+    const storeName =
+      storeSelect?.selectedOptions?.[0]?.textContent
+        ?.trim() || 'คลังที่เลือก';
+
     const confirmed = confirm(
       `ต้องการลบประวัติการทำรายการหรือไม่?\n\n` +
+      `คลัง: ${storeName}\n` +
       `ตั้งแต่วันที่ ${startDate}\n` +
       `ถึงวันที่ ${endDate}\n\n` +
-      `ระบบจะลบเฉพาะประวัติการทำรายการ\n` +
+      `ระบบจะลบเฉพาะประวัติของคลังนี้\n` +
       `จะไม่ลบสินค้าและจำนวนสต๊อกปัจจุบัน`
     );
 
@@ -2328,13 +2348,15 @@ $('#adminDeleteHistoryBtn')?.addEventListener(
         await api('/admin/movements', {
           method: 'DELETE',
           body: JSON.stringify({
+            storeId: Number(storeId),
             startDate,
             endDate,
           }),
         });
 
       message.textContent =
-        `ลบประวัติการทำรายการเรียบร้อยแล้ว จำนวน ${result.deleted} รายการ`;
+        `ลบประวัติการทำรายการของ ${storeName} ` +
+        `เรียบร้อยแล้ว จำนวน ${result.deleted} รายการ`;
 
       message.style.color = '#16a34a';
       message.hidden = false;
@@ -2354,6 +2376,8 @@ $('#adminDeleteHistoryBtn')?.addEventListener(
     }
   }
 );
+  
+    
 
 $('#adminLogoutBtn')?.addEventListener(
   'click',
