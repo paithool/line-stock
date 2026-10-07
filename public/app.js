@@ -619,7 +619,50 @@ async function refreshAdminStores() {
   }
 }
 
-      
+      async function loadAdminDeleteHistoryStores() {
+  const select =
+    $('#adminDeleteHistoryStore');
+
+  if (!select) return;
+
+  try {
+    const data =
+      await api('/admin/stores');
+
+    const stores =
+      data.stores ?? [];
+
+    select.innerHTML = `
+      <option value="">
+        -- เลือกคลังสินค้า --
+      </option>
+    `;
+
+    stores.forEach((store) => {
+      const option =
+        document.createElement('option');
+
+      option.value = store.id;
+
+      option.textContent =
+        `${store.name} (${store.code})`;
+
+      select.appendChild(option);
+    });
+
+  } catch (err) {
+    console.error(
+      'loadAdminDeleteHistoryStores error:',
+      err,
+    );
+
+    select.innerHTML = `
+      <option value="">
+        โหลดรายชื่อคลังไม่สำเร็จ
+      </option>
+    `;
+  }
+}
 
       
         
