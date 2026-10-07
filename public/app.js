@@ -144,6 +144,20 @@ async function autoLogout() {
   $('#loginUsername').focus();
 }
 
+['click', 'keydown', 'input', 'touchstart', 'scroll'].forEach(
+  (eventName) => {
+    document.addEventListener(
+      eventName,
+      () => {
+        resetAutoLogoutTimer();
+      },
+      {
+        passive: eventName === 'scroll',
+      },
+    );
+  },
+);
+
    /* --------------------------------------------------------- bootstrap */
 
 async function boot() {
