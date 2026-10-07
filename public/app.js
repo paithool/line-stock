@@ -1621,6 +1621,8 @@ $('#loginBtn').addEventListener('click', async () => {
     });
 
     state.me = result.user;
+
+     resetAutoLogoutTimer();
      
     paintUser();
 
