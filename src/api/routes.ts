@@ -788,6 +788,45 @@ api.get('/movements', async (c) => {
   );
 });
 
+api.delete(
+  '/admin/movements',
+  requireAdmin,
+  async (c) => {
+    const body =
+      await c.req.json<{
+        startDate?: string;
+        endDate?: string;
+      }>();
+
+    const startDate =
+      body.startDate?.trim() ?? '';
+
+    const endDate =
+      body.endDate?.trim() ?? '';
+
+    if (!startDate || !endDate) {
+      throw new AppError(
+        'กรุณาระบุวันที่เริ่มต้นและวันที่สิ้นสุด',
+      );
+    }
+
+    const user = c.get('user');
+
+    const deleted =
+      await repo.deleteMovementsByDateRange(
+        c.env.DB,
+        user.store_id,
+        startDate,
+        endDate,
+      );
+
+    return c.json({
+      ok: true,
+      deleted,
+    });
+  },
+);
+
 api.post('/movements', async (c) => {
   const body =
     await c.req.json<{
