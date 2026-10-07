@@ -2349,6 +2349,62 @@ export async function listMovements(
   return results ?? [];
 }
 
+export async function deleteMovementsByDateRange(
+  db: D1Database,
+  storeId: number,
+  startDate: string,
+  endDate: string,
+): Promise<number> {
+  if (
+    !Number.isInteger(storeId) ||
+    storeId <= 0
+  ) {
+    throw new AppError(
+      'รหัสร้านไม่ถูกต้อง',
+    );
+  }
+
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(startDate) ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(endDate)
+  ) {
+    throw new AppError(
+      'รูปแบบวันที่ไม่ถูกต้อง',
+    );
+  }
+
+  if (startDate > endDate) {
+    throw new AppError(
+      'วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด',
+    );
+  }
+
+  const result =
+    await db
+      .prepare(
+        `
+        DELETE FROM movements
+        WHERE store_id = ?
+          AND date(
+            created_at,
+            '+7 hours'
+          ) >= date(?)
+          AND date(
+            created_at,
+            '+7 hours'
+          ) <= date(?)
+        `,
+      )
+      .bind(
+        storeId,
+        startDate,
+        endDate,
+      )
+      .run();
+
+  return result.meta.changes;
+}
+
 /* --------------------------------------------------------------- reports */
 
 export async function lowStockProducts(
