@@ -2230,6 +2230,86 @@ $('#adminRefreshUsersBtn')?.addEventListener(
   () => refreshAdminUsers()
 );
 
+$('#adminDeleteHistoryBtn')?.addEventListener(
+  'click',
+  async () => {
+    const startDate =
+      $('#adminDeleteHistoryStartDate')?.value;
+
+    const endDate =
+      $('#adminDeleteHistoryEndDate')?.value;
+
+    const message =
+      $('#adminDeleteHistoryMessage');
+
+    const btn =
+      $('#adminDeleteHistoryBtn');
+
+    if (!startDate || !endDate) {
+      message.textContent =
+        'กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด';
+
+      message.style.color = '#ef4444';
+      message.hidden = false;
+      return;
+    }
+
+    if (startDate > endDate) {
+      message.textContent =
+        'วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด';
+
+      message.style.color = '#ef4444';
+      message.hidden = false;
+      return;
+    }
+
+    const confirmed = confirm(
+      `ต้องการลบประวัติการทำรายการหรือไม่?\n\n` +
+      `ตั้งแต่วันที่ ${startDate}\n` +
+      `ถึงวันที่ ${endDate}\n\n` +
+      `ระบบจะลบเฉพาะประวัติการทำรายการ\n` +
+      `จะไม่ลบสินค้าและจำนวนสต๊อกปัจจุบัน`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'กำลังลบ...';
+    message.hidden = true;
+
+    try {
+      const result =
+        await api('/admin/movements', {
+          method: 'DELETE',
+          body: JSON.stringify({
+            startDate,
+            endDate,
+          }),
+        });
+
+      message.textContent =
+        `ลบประวัติการทำรายการเรียบร้อยแล้ว จำนวน ${result.deleted} รายการ`;
+
+      message.style.color = '#16a34a';
+      message.hidden = false;
+
+    } catch (err) {
+      message.textContent =
+        err.message ||
+        'ไม่สามารถลบประวัติการทำรายการได้';
+
+      message.style.color = '#ef4444';
+      message.hidden = false;
+
+    } finally {
+      btn.disabled = false;
+      btn.textContent =
+        '🗑️ ลบประวัติการทำรายการ';
+    }
+  }
+);
 
 $('#adminLogoutBtn')?.addEventListener(
   'click',
