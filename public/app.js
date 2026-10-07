@@ -164,7 +164,7 @@ async function boot() {
   try {
   
      state.me = await api('/me');
-
+    resetAutoLogoutTimer();
     paintUser();
 
     $('#boot').hidden = true;
