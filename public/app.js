@@ -780,20 +780,37 @@ async function renderHistory() {
   list.innerHTML = '<div class="skeleton"></div>';
 
   try {
-    const params = new URLSearchParams();
+    
+const params = new URLSearchParams();
 
-    params.set('limit', '200');
+params.set('limit', '200');
 
-    // วันที่เริ่มต้น
-    if (state.historyStartDate) {
-      params.set('startDate', state.historyStartDate);
-    }
+if (state.historyMode === 'today') {
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
 
-    // วันที่สิ้นสุด
-    if (state.historyEndDate) {
-      params.set('endDate', state.historyEndDate);
-    }
+  const values = Object.fromEntries(
+    parts.map((p) => [p.type, p.value]),
+  );
 
+  const today =
+    `${values.year}-${values.month}-${values.day}`;
+
+  params.set('startDate', today);
+  params.set('endDate', today);
+} else {
+  if (state.historyStartDate) {
+    params.set('startDate', state.historyStartDate);
+  }
+
+  if (state.historyEndDate) {
+    params.set('endDate', state.historyEndDate);
+  }
+}
     // เรียกข้อมูลประวัติจาก API
     const rows = await api(`/movements?${params.toString()}`);
 
