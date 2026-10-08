@@ -1,8 +1,9 @@
 /* ============================================================
    LINE Stock — Design tokens
    ============================================================ */
-/*:root {
-  --bg:        #343B46;
+:root {
+  
+--bg:        #343B46;
   --surface:   #F2DDE8;
   --surface-2: #E5DCE2;
 
@@ -46,53 +47,6 @@
   --tab-h: 62px;
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
-*/
-
-/* ============================================================
-   LINE Stock — Blue & White Theme
-   ============================================================ */
-:root {
-  --bg:        #F0F4F8;
-  --surface:   #FFFFFF;
-  --surface-2: #EAF2FC;
-
-  --ink:       #0F172A;
-  --body:      #334155;
-  --muted:     #64748B;
-
-  --line:      #E2E8F0;
-  --line-soft: #F1F5F9;
-
-  --primary:   #1976D2;
-  --on-primary: #FFFFFF;
-
-  --issue:     #E53935;
-  --receive:   #16A34A;
-  --adjust:    #D97706;
-  --transfer:  #0284C7;
-
-  --danger:    #E53935;
-  --warn:      #D97706;
-  --ok:        #16A34A;
-
-  --issue-bg:    #FDECEC;
-  --receive-bg:  #E8F7EE;
-  --adjust-bg:   #FFF4DB;
-  --transfer-bg: #E1F3FC;
-
-  --r-sm: 10px;
-  --r-md: 14px;
-  --r-lg: 18px;
-  --r-xl: 24px;
-
-  --shadow-sm: 0 1px 4px rgba(30, 64, 110, .06);
-  --shadow-md: 0 5px 20px rgba(30, 64, 110, .10);
-  --shadow-lg: 0 -10px 45px rgba(30, 64, 110, .16);
-
-  --tab-h: 62px;
-  --safe-b: env(safe-area-inset-bottom, 0px);
-}
-
 
 /*
 @media (prefers-color-scheme: dark) {
