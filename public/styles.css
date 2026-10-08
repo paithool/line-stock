@@ -49,8 +49,8 @@
    ============================================================ */
 :root {
   --bg:        #F4F7FB;
-  --surface:   #F2DDE8;
-  --surface-2: #EAF2FC;
+  --surface:   #EAF2FC;
+  --surface-2: #F2DDE8;
 
   --ink:       #172B4D;
   --body:      #425775;
