@@ -48,16 +48,16 @@
    LINE Stock — Blue & White Theme
    ============================================================ */
 :root {
-  --bg:        #F4F7FB;
-  --surface:   #EAF2FC;
-  --surface-2: #F2DDE8;
+  --bg:        #F0F4F8;
+  --surface:   #FFFFFF;
+  --surface-2: #EAF2FC;
 
-  --ink:       #172B4D;
-  --body:      #425775;
-  --muted:     #71839B;
+  --ink:       #0F172A;
+  --body:      #334155;
+  --muted:     #64748B;
 
-  --line:      #D5E1F0;
-  --line-soft: #E8EEF6;
+  --line:      #E2E8F0;
+  --line-soft: #F1F5F9;
 
   --primary:   #1976D2;
   --on-primary: #FFFFFF;
