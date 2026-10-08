@@ -1,7 +1,7 @@
 /* ============================================================
    LINE Stock — Design tokens
    ============================================================ */
-:root {
+/*:root {
   --bg:        #0B0F14;
   --surface:   #121821;
   --surface-2: #19222D;
@@ -42,6 +42,7 @@
   --tab-h: 62px;
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
+*/
 
 /*
 @media (prefers-color-scheme: dark) {
