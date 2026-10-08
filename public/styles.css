@@ -222,8 +222,9 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 
 .tl__meta {
   font-size: 15px;
-  color: #E2E8F0 !important;
-  margin-top: 3px;
+  color: var(--receive) !important;
+  margin-top: 4px;
+  line-height: 1.7;
 }
 
 .tl__delta {
@@ -234,8 +235,11 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 
 .tl__balance {
   font-size: 14px;
-  color: #CBD5E1 !important;
+  color: var(--receive) !important;
   text-align: right;
+  margin-top: 3px;
+  font-weight: 700;
+
 }
 
 /* ---------------------------------------------------- search + chips */
