@@ -616,6 +616,23 @@ api.get('/products/:id', async (c) => {
     );
   }
 
+    const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+
+  const dateParts = Object.fromEntries(
+    parts.map((part) => [
+      part.type,
+      part.value,
+    ]),
+  );
+
+  const today =
+    `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+
   const [
     levels,
     movements,
@@ -625,15 +642,17 @@ api.get('/products/:id', async (c) => {
       user.store_id,
       id,
     ),
-
     repo.listMovements(
       c.env.DB,
       user.store_id,
       {
         productId: id,
+        startDate: today,
+        endDate: today,
         limit: 30,
       },
     ),
+    
   ]);
 
   return c.json({
