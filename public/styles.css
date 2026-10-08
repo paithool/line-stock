@@ -184,7 +184,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .item:active { transform: scale(.985); border-color: var(--muted); }
 .item__main { flex: 1; min-width: 0; }
 .item__name { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.item__meta { font-size: 14px; color: var(--muted); margin-top: 2px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.item__meta { font-size: 16px; color: var(--muted); margin-top: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .item__qty { text-align: right; flex: none; }
 .item__qty b { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .item__qty span { font-size: 11px; color: var(--muted); display: block; margin-top: -2px; }
