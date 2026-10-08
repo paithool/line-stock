@@ -215,25 +215,25 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .tl:last-child { border-bottom: 0; }
 .tl__icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-size: 14px; }
 .tl__name {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: #FFFFFF !important;
 }
 
 .tl__meta {
-  font-size: 13px;
+  font-size: 15px;
   color: #E2E8F0 !important;
   margin-top: 3px;
 }
 
 .tl__delta {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: #172B4D;
 }
 
 .tl__balance {
-  font-size: 12px;
+  font-size: 14px;
   color: #CBD5E1 !important;
   text-align: right;
 }
