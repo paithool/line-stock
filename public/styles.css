@@ -44,6 +44,52 @@
 }
 */
 
+/* ============================================================
+   LINE Stock — Blue & White Theme
+   ============================================================ */
+:root {
+  --bg:        #F3F7FC;
+  --surface:   #FFFFFF;
+  --surface-2: #EAF2FC;
+
+  --ink:       #172B4D;
+  --body:      #425775;
+  --muted:     #71839B;
+
+  --line:      #D5E1F0;
+  --line-soft: #E8EEF6;
+
+  --primary:   #1976D2;
+  --on-primary: #FFFFFF;
+
+  --issue:     #E53935;
+  --receive:   #16A34A;
+  --adjust:    #D97706;
+  --transfer:  #0284C7;
+
+  --danger:    #E53935;
+  --warn:      #D97706;
+  --ok:        #16A34A;
+
+  --issue-bg:    #FDECEC;
+  --receive-bg:  #E8F7EE;
+  --adjust-bg:   #FFF4DB;
+  --transfer-bg: #E1F3FC;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+
+  --shadow-sm: 0 1px 4px rgba(30, 64, 110, .06);
+  --shadow-md: 0 5px 20px rgba(30, 64, 110, .10);
+  --shadow-lg: 0 -10px 45px rgba(30, 64, 110, .16);
+
+  --tab-h: 62px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+
 /*
 @media (prefers-color-scheme: dark) {
   :root {
