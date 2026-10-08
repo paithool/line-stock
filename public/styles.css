@@ -2,42 +2,46 @@
    LINE Stock — Design tokens
    ============================================================ */
 /*:root {
-  --bg:        #0B0F14;
-  --surface:   #121821;
-  --surface-2: #19222D;
+  --bg:        #343B46;
+  --surface:   #F2DDE8;
+  --surface-2: #E5DCE2;
 
-  --ink:       #F1F5F9;
-  --body:      #B8C4D3;
-  --muted:     #7F8C9D;
+  --ink:       #172B4D;
+  --body:      #425775;
+  --muted:     #71839B;
 
-  --line:      #263241;
-  --line-soft: #1D2733;
+  --line:      #C8BCC5;
+  --line-soft: #D9CDD6;
 
-  --primary:   #3B82F6;
+  --primary:   #1976D2;
   --on-primary: #FFFFFF;
 
-  --issue:     #F05252;
-  --receive:   #22C55E;
-  --adjust:    #F59E0B;
-  --transfer:  #38BDF8;
+  /* สีประเภทการเคลื่อนไหวสินค้า */
+  --issue:    #E53935;
+  --receive:  #16A34A;
+  --adjust:   #D97706;
+  --transfer: #0284C7;
 
-  --danger:    #F05252;
-  --warn:      #F59E0B;
-  --ok:        #22C55E;
+  /* สีแจ้งเตือน */
+  --danger: #E53935;
+  --warn:   #D97706;
+  --ok:     #16A34A;
 
-  --issue-bg:    #321C20;
-  --receive-bg:  #142B20;
-  --adjust-bg:   #302611;
-  --transfer-bg: #142A3A;
+  /* สีพื้นหลังของป้ายสถานะ */
+  --issue-bg:    #FDECEC;
+  --receive-bg:  #E8F7EE;
+  --adjust-bg:   #FFF4DB;
+  --transfer-bg: #E1F3FC;
 
+/* คงค่าขนาดและเงาเดิม */
   --r-sm: 10px;
   --r-md: 14px;
   --r-lg: 18px;
   --r-xl: 24px;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .30);
-  --shadow-md: 0 5px 20px rgba(0, 0, 0, .35);
-  --shadow-lg: 0 -10px 45px rgba(0, 0, 0, .55);
+  --shadow-sm: 0 1px 4px rgba(30, 64, 110, .06);
+  --shadow-md: 0 5px 20px rgba(30, 64, 110, .10);
+  --shadow-lg: 0 -10px 45px rgba(30, 64, 110, .16);
 
   --tab-h: 62px;
   --safe-b: env(safe-area-inset-bottom, 0px);
